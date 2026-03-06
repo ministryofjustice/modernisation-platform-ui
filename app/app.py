@@ -10,7 +10,6 @@ from app.shared.config.limiter_config import configure_limiter
 from app.shared.config.logging_config import configure_logging
 from app.shared.config.routes_config import configure_routes
 from app.shared.config.sentry_config import configure_sentry
-from app.shared.database import db
 
 logger = logging.getLogger(__name__)
 
@@ -24,8 +23,6 @@ def create_app(is_rate_limit_enabled=True) -> Flask:
 
     app.secret_key = app_config.flask.app_secret_key
 
-    app.config["SQLALCHEMY_DATABASE_URI"] = app_config.postgres.sql_alchemy_database_url
-    db.init_app(app)
 
     configure_routes(app)
     configure_error_handlers(app)
