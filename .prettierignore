@@ -1,0 +1,6 @@
+# JSON
+.devcontainer/devcontainer-lock.json
+
+# YAML
+.pre-commit-config.yaml
+helm/modernisation-platform-ui/templates/**.yaml

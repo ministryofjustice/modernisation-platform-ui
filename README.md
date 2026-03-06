@@ -1,70 +1,112 @@
-# Ministry of Justice Template Repository
+# 🚀 Modernisation Platform UI
 
-[![Ministry of Justice Repository Compliance Badge](https://github-community.service.justice.gov.uk/repository-standards/api/template-repository/badge)](https://github-community.service.justice.gov.uk/repository-standards/template-repository)
+[![Ministry of Justice Repository Compliance Badge](https://github-community.service.justice.gov.uk/repository-standards/api/github-community/badge)](https://github-community.service.justice.gov.uk/repository-standards/github-community) [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/ministryofjustice/github-community/badge)](https://scorecard.dev/viewer/?uri=github.com/ministryofjustice/github-community)
 
-This template repository equips you with the default initial files required for a Ministry of Justice GitHub repository.
+[![Open in Dev Container](https://raw.githubusercontent.com/ministryofjustice/.devcontainer/refs/heads/main/contrib/badge.svg)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/ministryofjustice/github-community) [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/ministryofjustice/github-community)
 
-## Included Files
+Welcome to the **Modernisation Platform UI**!
 
-The repository comes with the following preset files:
+## 📜 Table of Contents
 
-- LICENSE
-- .gitignore
-- CODEOWNERS
-- dependabot.yml
-- GitHub Actions example files
-- Ministry of Justice Compliance Badge (public repositories only)
+- [📣 About GitHub Community](#-about-github-community)
+- [📌 Projects](#-projects)
+- [🏗️ github-community Repository](#-github-community-repository)
+  - [🔑 Key Features](#-key-features)
+  - [📂 Folder Structure](#-folder-structure)
+  - [🌎 Hosted Services](#-hosted-services)
+  - [✅ Benefits](#-benefits)
+  - [❌ Challenges](#-challenges)
+  - [🛠️ Development Setup](#-development-setup)
+- [📄 License](#-license)
 
-## Setup Instructions
+## 📣 About GitHub Community
 
-Once you've created your repository using this template, ensure the following steps:
+The **GitHub Community** is a group of passionate engineers dedicated to building great services. It is run by volunteers and promotes an **engineer-first** approach, ensuring that projects remain in the hands of those who actively develop them. The community fosters innovation and collaboration by supporting multiple projects within the **Ministry of Justice** GitHub ecosystem.
 
-### Update README
+## 📌 Projects
 
-Edit this README.md file to document your project accurately. Take the time to create a clear, engaging, and informative README.md file. Include information like what your project does, how to install and run it, how to contribute, and any other pertinent details.
+The community currently provides the following projects and services:
 
-### Update repository description
+| Project Name              | Description                                                                                               |
+| ------------------------- | --------------------------------------------------------------------------------------------------------- |
+| **Repository Standards**  | Improving code quality and security by centralizing knowledge and best practices for GitHub repositories. |
+| **Shared GitHub Actions** | Providing reusable GitHub Actions to reduce technical debt, improve maintainability, and enhance quality. |
+| **...**                   | More projects to be added...                                                                              |
 
-After you've created your repository, GitHub provides a brief description field that appears on the top of your repository's main page. This is a summary that gives visitors quick insight into the project. Using this field to provide a succinct overview of your repository is highly recommended.
+## 🏗️ github-community Repository
 
-This description and your README.md will be one of the first things people see when they visit your repository. It's a good place to make a strong, concise first impression. Remember, this is often visible in search results on GitHub and search engines, so it's also an opportunity to help people discover your project.
+The **github-community repository** serves as the primary hub and a single pane of glass for all things **GitHub Community**. To help engineers quickly build and deploy their projects, this repository hosts a **modular monolithic Flask application**. Engineers can optionally choose to host their ideas here, minimizing maintenance burdens while gaining quick access to shared components.
 
-### Grant Team Permissions
+### 🔑 Key Features
 
-Assign permissions to the appropriate Ministry of Justice teams. Ensure at least one team is granted Admin permissions. Whenever possible, assign permissions to teams rather than individual users.
+- **Single Flask Application:** A shared core framework hosting multiple projects.
+- **Single Set of Dependencies:** Simplified dependency management.
+- **Shared Database (Amazon RDS - PostgreSQL):** Minimal maintenance with easy access to data persistence.
+- **Shared Authentication:** Quickly secure projects with a common authentication layer.
+- **Modular Code Structure:** Projects are self-contained within the monolith.
 
-Prefer to user GitHub Teams over individual access to repositories. Where appropriate, ensure GitHub Teams used are related to a Parent Team associated with a Business Unit to help ensure ownership can be easily identified.
+### 📂 Folder Structure
 
-### Read about the GitHub repository standards
-
-Familiarise yourself with the Ministry of Justice GitHub Repository Standards. These standards ensure consistency, maintainability, and best practices across all our repositories.
-
-You can find the standards [here](https://github-community.service.justice.gov.uk/repository-standards/guidance).
-
-Please read and understand these standards thoroughly and enable them when you feel comfortable.
-
-### Modify the GitHub Standards Badge
-
-Once you've ensured that all the [GitHub Repository Standards](https://github-community.service.justice.gov.uk/repository-standards/guidance) have been applied to your repository, it's time to update the Ministry of Justice (MoJ) Compliance Badge located in the README file.
-
-The badge demonstrates that your repository is compliant with MoJ's standards.
-
-To update the badge, replace the `template-repository` in the badge URL with your repository's name. The badge URL should look like this:
-
-```markdown
-[![Ministry of Justice Repository Compliance Badge](https://github-community.service.justice.gov.uk/repository-standards/api/${your-repository-name}/badge)](https://github-community.service.justice.gov.uk/repository-standards/${your-reposistory-name})
+```
+/modernisation-platform-ui/
+├── app/                      # Core Flask application
+│   └── projects/                 # Individual project modules
+│       ├── repository_standards/     # Repository standards module
+│       ├── shared_github_actions/    # GitHub Actions module
+│       └── ...
+│   └── shared/                   # Shared modules
+│       ├── config/                   # Shared configuration settings
+│       ├── middleware/               # Shared middleware functions
+│       ├── routes/                   # Shared routes
+│       ├── database.py               # Shared database connection
+│       └── ...
+├── tests/                    # Automated tests
+└── ...
 ```
 
-**Please note** the badge will not function correctly if your repository is internal or private. In this case, you may remove the badge from your README.
+### 🌎 Hosted Services
 
-### Update CODEOWNERS
+This repository provides a set of services accessible at **[github-community.service.justice.gov.uk](https://github-community.service.justice.gov.uk)**, including:
 
-(Optional) Modify the CODEOWNERS file to specify the teams or users authorized to approve pull requests.
+- **✅ Repository Standards** – Automated reports on repository health and best practices.
 
-### Configure Dependabot
+### ✅ Benefits
 
-Adapt the dependabot.yml file to match your project's [dependency manager](https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file#package-ecosystem) and to enable [automated pull requests for package updates](https://docs.github.com/en/code-security/supply-chain-security).
+- **Simplified Maintenance** – One codebase to manage.
+- **Shared Components** – Reduces duplication of common functionality.
+- **Easier Collaboration** – Community contributions are streamlined.
+- **Scalable & Extensible** – New projects can be added with minimal setup.
 
-### Dependency Review
+### ❌ Challenges
 
-If your repository is private with no GitHub Advanced Security license, remove the `.github/workflows/dependency-review.yml` file.
+- **Coupling** – Projects share infrastructure and dependencies.
+- **Deployment Coordination** – Updates affect all projects simultaneously.
+- **Performance Considerations** – Shared resources must be optimized.
+
+### 🛠️ Development Setup
+
+### Prerequisites
+
+- [uv](https://docs.astral.sh/uv/)
+- Docker (optional for local database setup)
+
+### Setup Instructions
+
+```sh
+# Clone the repository
+git clone https://github.com/ministryofjustice/modernisation-platform-ui.git
+
+cd modernisation-platform-ui
+
+# Install dependencies
+make uv-activate
+
+# Run the application
+make app-start
+```
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.

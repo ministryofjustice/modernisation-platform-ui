@@ -1,0 +1,16 @@
+app:
+  ingress:
+    hosts:
+    - "modernisation-platform.cloud-platform.service.justice.gov.uk"
+    modsec:
+      githubTeam: "modernisation-platform"
+      ingressName: "modsec"
+
+  deployment:
+    replicaCount: 1
+    env:
+      AUTH0_DOMAIN: "ministryofjustice.eu.auth0.com"
+      SENTRY_ENV: "production"
+      FLASK_DEBUG: true
+      PHASE_BANNER_TEXT: "ALPHA"
+      AUTH_ENABLED: true
