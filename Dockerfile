@@ -67,7 +67,6 @@ EOF
 WORKDIR ${APP_HOME}
 COPY --from=builder --chown=${CONTAINER_UID}:${CONTAINER_GID} /app/.venv /app/.venv
 COPY --chown=${CONTAINER_UID}:${CONTAINER_GID} app app
-COPY --chown=${CONTAINER_UID}:${CONTAINER_GID} migrations migrations
 COPY --chown=nobody:nobody --chmod=0755 container/usr/local/bin/entrypoint.sh /usr/local/bin/entrypoint.sh
 
 USER ${CONTAINER_UID}
