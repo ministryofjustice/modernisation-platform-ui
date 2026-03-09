@@ -1,16 +1,16 @@
 # 🚀 Modernisation Platform UI
 
-[![Ministry of Justice Repository Compliance Badge](https://github-community.service.justice.gov.uk/repository-standards/api/github-community/badge)](https://github-community.service.justice.gov.uk/repository-standards/github-community) [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/ministryofjustice/github-community/badge)](https://scorecard.dev/viewer/?uri=github.com/ministryofjustice/github-community)
+[![Ministry of Justice Repository Compliance Badge](https://github-community.service.justice.gov.uk/repository-standards/api/github-community/badge)](https://github-community.service.justice.gov.uk/repository-standards/modernisation-platform-ui) [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/ministryofjustice/modernisation-platform-ui/badge)](https://scorecard.dev/viewer/?uri=github.com/ministryofjustice/modernisation-platform-ui)
 
-[![Open in Dev Container](https://raw.githubusercontent.com/ministryofjustice/.devcontainer/refs/heads/main/contrib/badge.svg)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/ministryofjustice/github-community) [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/ministryofjustice/github-community)
+[![Open in Dev Container](https://raw.githubusercontent.com/ministryofjustice/.devcontainer/refs/heads/main/contrib/badge.svg)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/ministryofjustice/modernisation-platform-ui) [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/ministryofjustice/modernisation-platform-ui)
 
 Welcome to the **Modernisation Platform UI**!
 
 ## 📜 Table of Contents
 
-- [📣 About GitHub Community](#-about-github-community)
+- [📣 About Modernisation Platform UI](#-about-modernisation-platform-ui)
 - [📌 Projects](#-projects)
-- [🏗️ github-community Repository](#-github-community-repository)
+- [🏗️ modernisation-platform-ui Repository](#-modernisation-platform-ui-repository)
   - [🔑 Key Features](#-key-features)
   - [📂 Folder Structure](#-folder-structure)
   - [🌎 Hosted Services](#-hosted-services)
@@ -19,9 +19,10 @@ Welcome to the **Modernisation Platform UI**!
   - [🛠️ Development Setup](#-development-setup)
 - [📄 License](#-license)
 
-## 📣 About GitHub Community
+## 📣 About Modernisation Platform UI
 
-The **GitHub Community** is a group of passionate engineers dedicated to building great services. It is run by volunteers and promotes an **engineer-first** approach, ensuring that projects remain in the hands of those who actively develop them. The community fosters innovation and collaboration by supporting multiple projects within the **Ministry of Justice** GitHub ecosystem.
+The **Modernisation Platform UI** is an application hosted on the Cloud Platform and built by the Modernisation Platform Team to host various projects.
+
 
 ## 📌 Projects
 
@@ -29,13 +30,12 @@ The community currently provides the following projects and services:
 
 | Project Name              | Description                                                                                               |
 | ------------------------- | --------------------------------------------------------------------------------------------------------- |
-| **Repository Standards**  | Improving code quality and security by centralizing knowledge and best practices for GitHub repositories. |
-| **Shared GitHub Actions** | Providing reusable GitHub Actions to reduce technical debt, improve maintainability, and enhance quality. |
+| **Reports**               | View various reports and insights for the Modernisation Platform.                                         |
 | **...**                   | More projects to be added...                                                                              |
 
-## 🏗️ github-community Repository
+## 🏗️ modernisation-platform-ui Repository
 
-The **github-community repository** serves as the primary hub and a single pane of glass for all things **GitHub Community**. To help engineers quickly build and deploy their projects, this repository hosts a **modular monolithic Flask application**. Engineers can optionally choose to host their ideas here, minimizing maintenance burdens while gaining quick access to shared components.
+To help engineers quickly build and deploy their projects, this repository hosts a **modular monolithic Flask application**. Engineers can optionally choose to host their ideas here, minimising maintenance burdens while gaining quick access to shared components.
 
 ### 🔑 Key Features
 
@@ -63,9 +63,9 @@ The **github-community repository** serves as the primary hub and a single pane 
 
 ### 🌎 Hosted Services
 
-This repository provides a set of services accessible at **[github-community.service.justice.gov.uk](https://github-community.service.justice.gov.uk)**, including:
+This repository provides a set of services accessible at **[modernisation-platform.cloud-platform.service.justice.gov.uk](https://modernisation-platform.cloud-platform.service.justice.gov.uk)**, including:
 
-- **✅ Repository Standards** – Automated reports on repository health and best practices.
+- **✅ Reports** – View various reports and insights for the Modernisation Platform.
 
 ### ✅ Benefits
 
@@ -78,7 +78,7 @@ This repository provides a set of services accessible at **[github-community.ser
 
 - **Coupling** – Projects share infrastructure and dependencies.
 - **Deployment Coordination** – Updates affect all projects simultaneously.
-- **Performance Considerations** – Shared resources must be optimized.
+- **Performance Considerations** – Shared resources must be optimised.
 
 ### 🛠️ Development Setup
 
