@@ -9,42 +9,30 @@
   <h1 class="govuk-heading-xl">Modernisation Platform Overview</h1>
 
   <section>
-    <h2 class="govuk-heading-m">Reports</h2>
-    <p class="govuk-body-s">View platform access reports for users and teams in the Modernisation Platform.</p>
+    <h2 class="govuk-heading-m">Projects</h2>
+    <p class="govuk-body-s">
+      Welcome to the Modernisation Platform App! This space is built by passionate engineers for passionate engineers. 
+      Whether you're exploring new ideas, testing proof of concepts, or maintaining live projects, this is your space to collaborate, innovate, and create solutions that matter.
+    </p>
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-one-third">
         <h3 class="govuk-heading-s govuk-!-margin-bottom-1">
-          <a class="govuk-link" href="{{ url_for('modernisation_platform_main.platform_environments_summary') }}">Environments Summary</a>
+          <a class="govuk-link" href="{{ url_for('reports_main.index') }}">Reports</a>
         </h3>
-        <p class="govuk-body-s">Dashboard view of key platform statistics and metrics.</p>
+        <p class="govuk-body-s">View various reports and insights for the Modernisation Platform.</p>
       </div>
-      <div class="govuk-grid-column-one-third">
+    <div class="govuk-grid-column-one-third">
         <h3 class="govuk-heading-s govuk-!-margin-bottom-1">
-          <a class="govuk-link" href="{{ url_for('modernisation_platform_main.platform_access_summary') }}">Access Summary</a>
+          <a class="govuk-link" target="_blank" href="https://user-guide.modernisation-platform.service.justice.gov.uk/">User Guidance</a>
         </h3>
-        <p class="govuk-body-s">View all access roles and their usage across environments.</p>
+        <p class="govuk-body-s">View the user guidance for the Modernisation Platform.</p>
       </div>
-      <div class="govuk-grid-column-one-third">
+    <div class="govuk-grid-column-one-third">
         <h3 class="govuk-heading-s govuk-!-margin-bottom-1">
-          <a class="govuk-link" href="{{ url_for('modernisation_platform_main.sandbox_summary') }}">Sandbox Access Summary</a>
+          <a class="govuk-link" target="_blank" href="https://github-community.cloud-platform.service.justice.gov.uk/repository-standards/teams/Modernisation%20Platform">Repositories</a>
         </h3>
-        <p class="govuk-body-s">See a summary of sandbox access for Modernisation Platform users.</p>
+        <p class="govuk-body-s">View the repositories for the Modernisation Platform.</p>
       </div>
-    </div>
-    <div class="govuk-grid-row govuk-!-margin-top-3">
-      <div class="govuk-grid-column-one-third">
-        <h3 class="govuk-heading-s govuk-!-margin-bottom-1">
-          <a class="govuk-link" href="{{ url_for('modernisation_platform_main.platform_contact_details') }}">Contact Details</a>
-        </h3>
-        <p class="govuk-body-s">View contact information for all platform applications.</p>
-      </div>
-      <div class="govuk-grid-column-one-third">
-        <h3 class="govuk-heading-s govuk-!-margin-bottom-1">
-          <a class="govuk-link" href="{{ url_for('modernisation_platform_main.collaborators_summary') }}">Collaborators Summary</a>
-        </h3>
-        <p class="govuk-body-s">View individual collaborators and their environment access.</p>
-      </div>
-    </div>
   </section>
 
 {% endblock %}

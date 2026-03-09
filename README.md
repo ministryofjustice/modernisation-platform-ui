@@ -41,7 +41,6 @@ The **github-community repository** serves as the primary hub and a single pane 
 
 - **Single Flask Application:** A shared core framework hosting multiple projects.
 - **Single Set of Dependencies:** Simplified dependency management.
-- **Shared Database (Amazon RDS - PostgreSQL):** Minimal maintenance with easy access to data persistence.
 - **Shared Authentication:** Quickly secure projects with a common authentication layer.
 - **Modular Code Structure:** Projects are self-contained within the monolith.
 
@@ -51,14 +50,12 @@ The **github-community repository** serves as the primary hub and a single pane 
 /modernisation-platform-ui/
 ├── app/                      # Core Flask application
 │   └── projects/                 # Individual project modules
-│       ├── repository_standards/     # Repository standards module
-│       ├── shared_github_actions/    # GitHub Actions module
+│       ├── reports/              # Reports project module
 │       └── ...
 │   └── shared/                   # Shared modules
 │       ├── config/                   # Shared configuration settings
 │       ├── middleware/               # Shared middleware functions
 │       ├── routes/                   # Shared routes
-│       ├── database.py               # Shared database connection
 │       └── ...
 ├── tests/                    # Automated tests
 └── ...
@@ -88,7 +85,7 @@ This repository provides a set of services accessible at **[github-community.ser
 ### Prerequisites
 
 - [uv](https://docs.astral.sh/uv/)
-- Docker (optional for local database setup)
+- Docker
 
 ### Setup Instructions
 

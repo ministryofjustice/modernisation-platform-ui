@@ -1,19 +1,5 @@
 ---
 services:
-  database:
-    image: docker.io/postgres:18-alpine@sha256:9636ae7feacd8d630303eede7f95cd0f472d514e7864422c6aa8ea07b2171df8
-    environment:
-      - POSTGRES_DB=admin
-      - POSTGRES_USER=admin
-      - POSTGRES_PASSWORD=admin
-    ports:
-      - "5432:5432"
-    healthcheck:
-      test: "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"
-      interval: 1s
-      timeout: 5s
-      retries: 5
-
   app:
     image: "${CONTAINER_IMAGE_NAME:-ministryofjustice/modernisation-platform-ui}:${CONTAINER_IMAGE_TAG:-local}"
     platform: linux/amd64
@@ -38,30 +24,9 @@ services:
       # Local
       - LOGGING_LEVEL=DEBUG
       - AUTH_ENABLED=false
-      - ADD_STUB_VALUES_TO_DATABASE=true
+
+      # Sentry
+      - SENTRY_DSN_KEY=
+      - SENTRY_ENV=local
     ports:
       - "4567:4567"
-    depends_on:
-      database:
-        condition: service_healthy
-
-  db-seed:
-    image: docker.io/postgres:18-alpine@sha256:9636ae7feacd8d630303eede7f95cd0f472d514e7864422c6aa8ea07b2171df8
-    depends_on:
-      - database
-    environment:
-      PGPASSWORD: admin
-    networks:
-      - default
-    volumes:
-      - ./db-init:/db-init
-    entrypoint: >
-      sh -c '
-        echo "Waiting for database...";
-        until pg_isready -h database -p 5432 -U admin; do sleep 1; done;
-        echo "Waiting for Alembic migrations...";
-        until psql -h database -U admin -d admin -c "SELECT 1 FROM alembic_version" >/dev/null 2>&1; do sleep 1; done;
-        echo "Running stub SQL files...";
-        psql -h database -U admin -d admin -f "/db-init/01-stub-repository-standards-data.sql";
-        echo "Database seeding complete.";
-      '

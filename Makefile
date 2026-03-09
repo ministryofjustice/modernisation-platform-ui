@@ -1,4 +1,4 @@
-.PHONY: app-start app-start-debug app-stop container-build container-test container-scan database-create-migration database-start database-stop flask-run test test-reports uv-pre-commit-install uv-activate uv-sync
+.PHONY: app-start app-start-debug app-stop container-build container-test container-scan flask-run test test-reports uv-pre-commit-install uv-activate uv-sync
 
 SHELL := /bin/bash
 
@@ -31,7 +31,7 @@ container-scan: container-test
 	@echo "Scanning container image $(CONTAINER_IMAGE_NAME):$(CONTAINER_IMAGE_TAG) for vulnerabilities"
 	trivy image --platform linux/amd64 --severity HIGH,CRITICAL $(CONTAINER_IMAGE_NAME):$(CONTAINER_IMAGE_TAG)
 
-container-start: container-build database-start
+container-start: container-build 
 	@echo "Starting container"
 	CONTAINER_IMAGE_NAME=$(CONTAINER_IMAGE_NAME) CONTAINER_IMAGE_TAG=$(CONTAINER_IMAGE_TAG) docker compose --file=contrib/docker-compose.yaml up app --detach
 
@@ -41,19 +41,7 @@ container-stop:
 
 container-restart: container-stop container-start
 
-database-create-migration:
-	@echo "Creating database migration"
-	uv run alembic --config migrations/alembic.ini revision --message 'project_name_description'
-
-database-start:
-	@echo "Starting PostgreSQL"
-	docker compose --file contrib/docker-compose.yaml up database --detach
-
-database-stop:
-	@echo "Stopping PostgreSQL"
-	docker compose --file contrib/docker-compose.yaml down --remove-orphans
-
-flask-run: database-start
+flask-run:
 	@echo "Starting Flask application"
 	flask --app app.app --debug run
 

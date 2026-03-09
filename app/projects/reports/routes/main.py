@@ -1,20 +1,20 @@
 import logging
 from flask import Blueprint, render_template, jsonify
-from app.projects.modernisation_platform.services.service import get_all_json_data, get_readme_incident_info, get_collaborators_data
+from app.projects.reports.services.service import get_all_json_data, get_readme_incident_info, get_collaborators_data
 
 from app.shared.middleware.auth import requires_auth
 from app.shared.config.app_config import app_config
 
 logger = logging.getLogger(__name__)
 
-modernisation_platform_main = Blueprint("modernisation_platform_main", __name__)
+reports_main = Blueprint("reports_main", __name__)
 
-@modernisation_platform_main.route("/", methods=["GET", "POST"])
+@reports_main.route("/", methods=["GET", "POST"])
 @requires_auth
 def index():
-    return render_template("projects/modernisation_platform/pages/home.html")
+    return render_template("projects/reports/pages/home.html")
 
-@modernisation_platform_main.route("/sandbox-summary")
+@reports_main.route("/sandbox-summary")
 @requires_auth
 def sandbox_summary():
     org = "ministryofjustice"
@@ -46,9 +46,9 @@ def sandbox_summary():
                         "nuke": nuke_status,
                         "groups": sandbox_groups
                     })
-    return render_template("projects/modernisation_platform/pages/sandbox_summary.html", apps=result)
+    return render_template("projects/reports/pages/sandbox_summary.html", apps=result)
 
-@modernisation_platform_main.route("/platform-access-summary")
+@reports_main.route("/platform-access-summary")
 @requires_auth
 def platform_access_summary():
     org = "ministryofjustice"
@@ -123,12 +123,12 @@ def platform_access_summary():
     role_counts = dict(sorted(role_counts.items(), key=lambda x: x[1], reverse=True))
     
     return render_template(
-        "projects/modernisation_platform/pages/platform_access_summary.html",
+        "projects/reports/pages/platform_access_summary.html",
         role_counts=role_counts,
         access_items=access_items
     )
 
-@modernisation_platform_main.route("/platform-contact-details")
+@reports_main.route("/platform-contact-details")
 @requires_auth
 def platform_contact_details():
     org = "ministryofjustice"
@@ -174,11 +174,11 @@ def platform_contact_details():
             app["incident_contact"] = "N/A"
     
     return render_template(
-        "projects/modernisation_platform/pages/platform_contact_details.html",
+        "projects/reports/pages/platform_contact_details.html",
         apps=apps
     )
 
-@modernisation_platform_main.route("/collaborators-summary")
+@reports_main.route("/collaborators-summary")
 @requires_auth
 def collaborators_summary():
     org = "ministryofjustice"
@@ -234,13 +234,13 @@ def collaborators_summary():
     env_counts_sorted = dict(sorted(env_counts.items(), key=lambda x: x[1], reverse=True)[:10])  # Top 10
     
     return render_template(
-        "projects/modernisation_platform/pages/collaborators_summary.html",
+        "projects/reports/pages/collaborators_summary.html",
         collaborators=collaborators,
         total_collaborators=len(collaborators),
         env_counts=env_counts_sorted
     )
 
-@modernisation_platform_main.route("/platform-environments-summary")
+@reports_main.route("/platform-environments-summary")
 @requires_auth
 def platform_environments_summary():
     org = "ministryofjustice"
@@ -337,7 +337,7 @@ def platform_environments_summary():
     business_unit_counts = dict(sorted(business_unit_counts.items(), key=lambda x: x[1], reverse=True))
     
     return render_template(
-        "projects/modernisation_platform/pages/platform_environments_summary.html",
+        "projects/reports/pages/platform_environments_summary.html",
         env_type_counts=env_type_counts,
         cni_count=cni_count,
         account_type_counts=account_type_counts,
