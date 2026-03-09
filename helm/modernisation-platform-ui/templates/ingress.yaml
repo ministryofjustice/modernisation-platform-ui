@@ -1,0 +1,37 @@
+{{- $fullName := include "app.fullname" . -}}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+  annotations:
+    external-dns.alpha.kubernetes.io/set-identifier: {{ $fullName }}-{{ $fullName }}-green
+    external-dns.alpha.kubernetes.io/aws-weight: "100"
+    cloud-platform.justice.gov.uk/ignore-external-dns-weight: "true"
+    nginx.ingress.kubernetes.io/enable-modsecurity: "true"
+    nginx.ingress.kubernetes.io/modsecurity-snippet: |
+      SecRuleEngine On
+      SecDefaultAction "phase:2,pass,log,tag:github_team={{ .Values.app.ingress.modsec.githubTeam }}"
+spec:
+  ingressClassName: "{{ .Values.app.ingress.modsec.ingressName }}"
+  tls:
+    - hosts:
+      {{- range .Values.app.ingress.hosts }}
+        - {{ . }}
+      {{- end }}
+      secretName: "modernisation-platform-ui-prod-cert"
+  rules:
+    {{- range .Values.app.ingress.hosts }}
+    - host: {{ . }}
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: {{ $fullName }}
+                port:
+                  number: 80
+    {{- end }}

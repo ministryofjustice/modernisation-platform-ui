@@ -1,0 +1,109 @@
+---
+name: ♻️ Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: production
+
+env:
+  KUBE_CLUSTER: ${{ secrets.KUBE_CLUSTER }}
+  KUBE_NAMESPACE: ${{ secrets.PROD_KUBE_NAMESPACE }}
+  KUBE_CERT: ${{ secrets.PROD_KUBE_CERT }}
+  KUBE_TOKEN: ${{ secrets.PROD_KUBE_TOKEN }}
+
+  IMAGE_TAG: ${{ github.sha }}
+  ECR_REGISTRY: ${{ secrets.ECR_REGISTRY_URL }}
+  ECR_REPOSITORY: ${{ vars.PROD_ECR_REPOSITORY }}
+  FLASK_APP_SECRET: ${{ secrets.PROD_FLASK_APP_SECRET }}
+  AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
+  AUTH0_CLIENT_SECRET: ${{ secrets.AUTH0_CLIENT_SECRET }}
+  GITHUB_APP_CLIENT_ID: ${{ vars.GH_APP_CLIENT_ID }}
+  GITHUB_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY }}
+  GITHUB_APP_INSTALLATION_ID: ${{ vars.GH_APP_INSTALLATION_ID }}
+  SENTRY_DSN_KEY: ${{ secrets.SENTRY_DSN_KEY }}
+
+jobs:
+  build-push-image:
+    name: Build and Push Image
+    runs-on: ubuntu-latest
+    environment:
+      name: Production
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        id: checkout
+        with:
+          persist-credentials: false
+
+      - name: Configure AWS Credentials
+        id: configure_aws_credentials
+        uses: aws-actions/configure-aws-credentials@00943011d9042930efac3dcd3a170e4273319bc8 # v5.1.0
+        with:
+          aws-region: ${{ vars.PROD_ECR_REGION }}
+          role-to-assume: ${{ secrets.PROD_ECR_ROLE_TO_ASSUME }}
+
+      - name: Log in to Amazon ECR
+        id: ecr_login
+        uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+
+      - name: Build and Push
+        id: build_and_push
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+        with:
+          push: true
+          tags: ${{ steps.ecr_login.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+
+  deploy-to-production:
+    needs: [build-push-image]
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        id: checkout
+        with:
+          persist-credentials: false
+
+      - name: Authenticate to Cloud Platform
+        id: cloud_platform_authentication
+        run: |
+          echo "${KUBE_CERT}" > ca.crt
+          kubectl config set-cluster "${KUBE_CLUSTER}" --certificate-authority=./ca.crt --server="https://${KUBE_CLUSTER}"
+          kubectl config set-credentials deploy-user --token="${KUBE_TOKEN}"
+          kubectl config set-context "${KUBE_CLUSTER}" --cluster="${KUBE_CLUSTER}" --user=deploy-user --namespace="${KUBE_NAMESPACE}"
+          kubectl config get-contexts
+          kubectl config use-context "${KUBE_CLUSTER}"
+
+      - name: Deploy Helm Chart
+        id: deploy_helm_chart
+        run: |
+          helm upgrade modernisation-platform-ui \
+            helm/modernisation-platform-ui \
+            --install \
+            --force \
+            --wait \
+            --timeout 10m \
+            --namespace "${KUBE_NAMESPACE}" \
+            --values=helm/modernisation-platform-ui/values-prod.yaml \
+            --set app.deployment.env.AUTH0_CLIENT_ID="${AUTH0_CLIENT_ID}" \
+            --set app.deployment.env.AUTH0_CLIENT_SECRET="${AUTH0_CLIENT_SECRET}" \
+            --set app.deployment.env.APP_SECRET_KEY="${FLASK_APP_SECRET}" \
+            --set app.deployment.env.ADMIN_GITHUB_TOKEN="${ADMIN_GITHUB_TOKEN}" \
+            --set app.deployment.env.GITHUB_APP_CLIENT_ID="${GITHUB_APP_CLIENT_ID}" \
+            --set app.deployment.env.GITHUB_APP_PRIVATE_KEY="${GITHUB_APP_PRIVATE_KEY}" \
+            --set app.deployment.env.GITHUB_APP_INSTALLATION_ID="${GITHUB_APP_INSTALLATION_ID}" \
+            --set app.deployment.env.SENTRY_DSN_KEY="${SENTRY_DSN_KEY}" \
+            --set app.deployment.image.repository="${ECR_REGISTRY}/${ECR_REPOSITORY}" \
+            --set app.deployment.image.tag="${IMAGE_TAG}"
