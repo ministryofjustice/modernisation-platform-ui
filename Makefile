@@ -45,10 +45,6 @@ flask-run:
 	@echo "Starting Flask application"
 	flask --app app.app --debug run
 
-test:
-	@echo "Running pytest"
-	coverage run -m pytest
-
 test-reports:
 	@echo "Generating test reports"
 	coverage report --omit=./test/** --sort=cover --show-missing --skip-empty
