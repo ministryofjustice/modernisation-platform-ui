@@ -1,50 +1,78 @@
-{% extends "shared/components/base.html" %}
+{% extends "shared/components/base.html" %} {% block pageTitle %} Modernisation
+Platform {% endblock %} {% block content %}
 
-{% block pageTitle %}
-   Modernisation Platform
-{% endblock %}
+<h1 class="govuk-heading-xl">Modernisation Platform Overview</h1>
 
-{% block content %}
-
-  <h1 class="govuk-heading-xl">Modernisation Platform Overview</h1>
-
-  <section>
-    <h2 class="govuk-heading-m">Reports</h2>
-    <p class="govuk-body-s">View platform access reports for users and teams in the Modernisation Platform.</p>
-    <div class="govuk-grid-row">
-      <div class="govuk-grid-column-one-third">
-        <h3 class="govuk-heading-s govuk-!-margin-bottom-1">
-          <a class="govuk-link" href="{{ url_for('reports_main.platform_environments_summary') }}">Environments Summary</a>
-        </h3>
-        <p class="govuk-body-s">Dashboard view of key platform statistics and metrics.</p>
-      </div>
-      <div class="govuk-grid-column-one-third">
-        <h3 class="govuk-heading-s govuk-!-margin-bottom-1">
-          <a class="govuk-link" href="{{ url_for('reports_main.platform_access_summary') }}">Access Summary</a>
-        </h3>
-        <p class="govuk-body-s">View all access roles and their usage across environments.</p>
-      </div>
-      <div class="govuk-grid-column-one-third">
-        <h3 class="govuk-heading-s govuk-!-margin-bottom-1">
-          <a class="govuk-link" href="{{ url_for('reports_main.sandbox_summary') }}">Sandbox Access Summary</a>
-        </h3>
-        <p class="govuk-body-s">See a summary of sandbox access for Modernisation Platform users.</p>
-      </div>
+<section>
+  <h2 class="govuk-heading-m">Reports</h2>
+  <p class="govuk-body-s">
+    View platform access reports for users and teams in the Modernisation
+    Platform.
+  </p>
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-one-third">
+      <h3 class="govuk-heading-s govuk-!-margin-bottom-1">
+        <a
+          class="govuk-link"
+          href="{{ url_for('reports_main.platform_environments_summary') }}"
+          >Environments Summary</a
+        >
+      </h3>
+      <p class="govuk-body-s">
+        Dashboard view of key platform statistics and metrics.
+      </p>
     </div>
-    <div class="govuk-grid-row govuk-!-margin-top-3">
-      <div class="govuk-grid-column-one-third">
-        <h3 class="govuk-heading-s govuk-!-margin-bottom-1">
-          <a class="govuk-link" href="{{ url_for('reports_main.platform_contact_details') }}">Contact Details</a>
-        </h3>
-        <p class="govuk-body-s">View contact information for all platform applications.</p>
-      </div>
-      <div class="govuk-grid-column-one-third">
-        <h3 class="govuk-heading-s govuk-!-margin-bottom-1">
-          <a class="govuk-link" href="{{ url_for('reports_main.collaborators_summary') }}">Collaborators Summary</a>
-        </h3>
-        <p class="govuk-body-s">View individual collaborators and their environment access.</p>
-      </div>
+    <div class="govuk-grid-column-one-third">
+      <h3 class="govuk-heading-s govuk-!-margin-bottom-1">
+        <a
+          class="govuk-link"
+          href="{{ url_for('reports_main.platform_access_summary') }}"
+          >Access Summary</a
+        >
+      </h3>
+      <p class="govuk-body-s">
+        View all access roles and their usage across environments.
+      </p>
     </div>
-  </section>
+    <div class="govuk-grid-column-one-third">
+      <h3 class="govuk-heading-s govuk-!-margin-bottom-1">
+        <a
+          class="govuk-link"
+          href="{{ url_for('reports_main.sandbox_summary') }}"
+          >Sandbox Access Summary</a
+        >
+      </h3>
+      <p class="govuk-body-s">
+        See a summary of sandbox access for Modernisation Platform users.
+      </p>
+    </div>
+  </div>
+  <div class="govuk-grid-row govuk-!-margin-top-3">
+    <div class="govuk-grid-column-one-third">
+      <h3 class="govuk-heading-s govuk-!-margin-bottom-1">
+        <a
+          class="govuk-link"
+          href="{{ url_for('reports_main.platform_contact_details') }}"
+          >Contact Details</a
+        >
+      </h3>
+      <p class="govuk-body-s">
+        View contact information for all platform applications.
+      </p>
+    </div>
+    <div class="govuk-grid-column-one-third">
+      <h3 class="govuk-heading-s govuk-!-margin-bottom-1">
+        <a
+          class="govuk-link"
+          href="{{ url_for('reports_main.collaborators_summary') }}"
+          >Collaborators Summary</a
+        >
+      </h3>
+      <p class="govuk-body-s">
+        View individual collaborators and their environment access.
+      </p>
+    </div>
+  </div>
+</section>
 
 {% endblock %}

@@ -1,7 +1,7 @@
 app:
   ingress:
     hosts:
-    - "modernisation-platform.cloud-platform.service.justice.gov.uk"
+      - "modernisation-platform.cloud-platform.service.justice.gov.uk"
     modsec:
       githubTeam: "modernisation-platform"
       ingressName: "modsec"
