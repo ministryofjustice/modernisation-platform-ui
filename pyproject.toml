@@ -23,7 +23,7 @@ dependencies = [
 dev = [
   "coverage==7.13.4",
   "pre-commit==4.5.1",
-  "pytest==8.4.2",
+  "pytest==9.0.2",
   "ruff==0.15.2",
   "zizmor==1.22.0",
 ]
