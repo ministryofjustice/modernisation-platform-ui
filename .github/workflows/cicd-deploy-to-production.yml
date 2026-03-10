@@ -35,6 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: Production
+      url: https://modernisation-platform.cloud-platform.service.justice.gov.uk
     permissions:
       contents: read
       id-token: write
