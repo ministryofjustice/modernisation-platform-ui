@@ -1,0 +1,232 @@
+{% extends "shared/components/base.html" %}
+
+{% block pageTitle %}
+  PoC Report
+{% endblock %}
+
+{% block content %}
+  {% set breadcrumbs = {
+    "items": [
+      { "text": "Home", "href": "/" },
+      { "text": "AWS Account Standards", "href": "/aws-account-standards" },
+      { "text": "PoC Report" }
+    ]
+  } %}
+  {{ govukBreadcrumbs(breadcrumbs)
+}}
+
+
+  <h1 class="govuk-heading-xl">cooker-development</h1>
+
+  <section class="govuk-summary-list govuk-!-margin-bottom-6">
+    <div class="govuk-summary-list__row">
+      <dt class="govuk-summary-list__key">Owner</dt>
+      <dd class="govuk-summary-list__value">Modernisation Platform</dd>
+    </div>
+
+    <div class="govuk-summary-list__row">
+      <dt class="govuk-summary-list__key">Account Type</dt>
+      <dd class="govuk-summary-list__value">Member</dd>
+    </div>
+
+  </section>
+
+
+<section>
+  <h2 class="govuk-heading-l">Baseline Checks</h2>
+  <table class="govuk-table" data-module="moj-sortable-table">
+    <thead class="govuk-table__head">
+      <tr class="govuk-table__row">
+        <th scope="col" class="govuk-table__header" aria-sort="ascending">Check</th>
+        <th scope="col" class="govuk-table__header" aria-sort="ascending">Compliance Status</th>
+        <th scope="col" class="govuk-table__header"></th>
+      </tr>
+    </thead>
+    <tbody class="govuk-table__body">
+      <tr class="govuk-table__row">
+        <td class="govuk-table__cell govuk-!-font-weight-bold">
+          Root MFA enabled
+          <p class="govuk-body-s">MFA is enabled on the root user.</p>
+        </td>
+        <td class="govuk-table__cell">
+          <span class="govuk-tag govuk-tag--grey">Unknown</span>
+        </td>
+        <td class="govuk-table__cell">
+          <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_root-user.html" class="govuk-link" target="_blank" rel="noopener noreferrer">View Guidance</a>
+        </td>
+      </tr>
+
+      <tr class="govuk-table__row">
+        <td class="govuk-table__cell govuk-!-font-weight-bold">
+          No root access keys
+          <p class="govuk-body-s">The root user has no programmatic access keys.</p>
+        </td>
+        <td class="govuk-table__cell">
+          <span class="govuk-tag govuk-tag--grey">Unknown</span>
+        </td>
+        <td class="govuk-table__cell">
+          <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_root-user.html" class="govuk-link" target="_blank" rel="noopener noreferrer">View Guidance</a>
+        </td>
+      </tr>
+
+      <tr class="govuk-table__row">
+        <td class="govuk-table__cell govuk-!-font-weight-bold">
+          S3 Block Public Access enabled (account level)
+          <p class="govuk-body-s">Account-level Block Public Access is enabled (all four settings).</p>
+        </td>
+        <td class="govuk-table__cell">
+          <span class="govuk-tag govuk-tag--grey">Unknown</span>
+        </td>
+        <td class="govuk-table__cell">
+          <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html" class="govuk-link" target="_blank" rel="noopener noreferrer">View Guidance</a>
+        </td>
+      </tr>
+
+      <tr class="govuk-table__row">
+        <td class="govuk-table__cell govuk-!-font-weight-bold">
+          CloudTrail enabled (multi-region)
+          <p class="govuk-body-s">At least one multi-region CloudTrail trail exists.</p>
+        </td>
+        <td class="govuk-table__cell">
+          <span class="govuk-tag govuk-tag--grey">Unknown</span>
+        </td>
+        <td class="govuk-table__cell">
+          <a href="https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-concepts.html" class="govuk-link" target="_blank" rel="noopener noreferrer">View Guidance</a>
+        </td>
+      </tr>
+
+      <tr class="govuk-table__row">
+        <td class="govuk-table__cell govuk-!-font-weight-bold">
+          CloudTrail log file validation enabled
+          <p class="govuk-body-s">CloudTrail log file validation is enabled for the trail.</p>
+        </td>
+        <td class="govuk-table__cell">
+          <span class="govuk-tag govuk-tag--grey">Unknown</span>
+        </td>
+        <td class="govuk-table__cell">
+          <a href="https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-log-file-validation-intro.html" class="govuk-link" target="_blank" rel="noopener noreferrer">View Guidance</a>
+        </td>
+      </tr>
+
+      <tr class="govuk-table__row">
+        <td class="govuk-table__cell govuk-!-font-weight-bold">
+          EBS encryption by default enabled
+          <p class="govuk-body-s">New EBS volumes are encrypted by default (per in-scope region).</p>
+        </td>
+        <td class="govuk-table__cell">
+          <span class="govuk-tag govuk-tag--grey">Unknown</span>
+        </td>
+        <td class="govuk-table__cell">
+          <a href="https://docs.aws.amazon.com/ebs/latest/userguide/encryption-by-default.html" class="govuk-link" target="_blank" rel="noopener noreferrer">View Guidance</a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2 class="govuk-heading-l">Standard Checks</h2>
+  <table class="govuk-table" data-module="moj-sortable-table">
+    <thead class="govuk-table__head">
+      <tr class="govuk-table__row">
+        <th scope="col" class="govuk-table__header" aria-sort="ascending">Check</th>
+        <th scope="col" class="govuk-table__header" aria-sort="ascending">Compliance Status</th>
+        <th scope="col" class="govuk-table__header"></th>
+      </tr>
+    </thead>
+    <tbody class="govuk-table__body">
+      <tr class="govuk-table__row">
+        <td class="govuk-table__cell govuk-!-font-weight-bold">
+          Root sign-in disabled (AWS Organizations)
+          <p class="govuk-body-s">Root user sign-in is disabled using AWS Organizations root access management.</p>
+        </td>
+        <td class="govuk-table__cell">
+          <span class="govuk-tag govuk-tag--grey">Unknown</span>
+        </td>
+        <td class="govuk-table__cell">
+          <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_root-enable-root-access.html" class="govuk-link" target="_blank" rel="noopener noreferrer">View Guidance</a>
+        </td>
+      </tr>
+
+      <tr class="govuk-table__row">
+        <td class="govuk-table__cell govuk-!-font-weight-bold">
+          GuardDuty enabled
+          <p class="govuk-body-s">GuardDuty is enabled for threat detection.</p>
+        </td>
+        <td class="govuk-table__cell">
+          <span class="govuk-tag govuk-tag--grey">Unknown</span>
+        </td>
+        <td class="govuk-table__cell">
+          <a href="https://docs.aws.amazon.com/guardduty/latest/ug/what-is-guardduty.html" class="govuk-link" target="_blank" rel="noopener noreferrer">View Guidance</a>
+        </td>
+      </tr>
+
+      <tr class="govuk-table__row">
+        <td class="govuk-table__cell govuk-!-font-weight-bold">
+          AWS Config enabled
+          <p class="govuk-body-s">AWS Config is enabled to record configuration changes.</p>
+        </td>
+        <td class="govuk-table__cell">
+          <span class="govuk-tag govuk-tag--grey">Unknown</span>
+        </td>
+        <td class="govuk-table__cell">
+          <a href="https://docs.aws.amazon.com/config/latest/developerguide/WhatIsConfig.html" class="govuk-link" target="_blank" rel="noopener noreferrer">View Guidance</a>
+        </td>
+      </tr>
+
+      <tr class="govuk-table__row">
+        <td class="govuk-table__cell govuk-!-font-weight-bold">
+          Security Hub enabled
+          <p class="govuk-body-s">Security Hub is enabled to aggregate security findings.</p>
+        </td>
+        <td class="govuk-table__cell">
+          <span class="govuk-tag govuk-tag--grey">Unknown</span>
+        </td>
+        <td class="govuk-table__cell">
+          <a href="https://docs.aws.amazon.com/securityhub/latest/userguide/what-is-securityhub.html" class="govuk-link" target="_blank" rel="noopener noreferrer">View Guidance</a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2 class="govuk-heading-l">Exemplar Checks</h2>
+  <table class="govuk-table" data-module="moj-sortable-table">
+    <thead class="govuk-table__head">
+      <tr class="govuk-table__row">
+        <th scope="col" class="govuk-table__header" aria-sort="ascending">Check</th>
+        <th scope="col" class="govuk-table__header" aria-sort="ascending">Compliance Status</th>
+        <th scope="col" class="govuk-table__header"></th>
+      </tr>
+    </thead>
+    <tbody class="govuk-table__body">
+      <tr class="govuk-table__row">
+        <td class="govuk-table__cell govuk-!-font-weight-bold">
+          Centralized logging to a separate log archive account
+          <p class="govuk-body-s">CloudTrail and Config logs are delivered to a dedicated log archive account.</p>
+        </td>
+        <td class="govuk-table__cell">
+          <span class="govuk-tag govuk-tag--grey">Unknown</span>
+        </td>
+        <td class="govuk-table__cell">
+          <a href="https://docs.aws.amazon.com/controltower/latest/userguide/what-is-control-tower.html" class="govuk-link" target="_blank" rel="noopener noreferrer">View Guidance</a>
+        </td>
+      </tr>
+
+      <tr class="govuk-table__row">
+        <td class="govuk-table__cell govuk-!-font-weight-bold">
+          Automated remediation for high-confidence controls
+          <p class="govuk-body-s">Automatic remediation is configured for a small set of critical misconfigurations.</p>
+        </td>
+        <td class="govuk-table__cell">
+          <span class="govuk-tag govuk-tag--grey">Unknown</span>
+        </td>
+        <td class="govuk-table__cell">
+          <a href="https://docs.aws.amazon.com/config/latest/developerguide/remediation.html" class="govuk-link" target="_blank" rel="noopener noreferrer">View Guidance</a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+{% endblock %}

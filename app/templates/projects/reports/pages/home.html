@@ -1,6 +1,16 @@
 {% extends "shared/components/base.html" %} {% block pageTitle %} Modernisation
 Platform {% endblock %} {% block content %}
 
+{% set breadcrumbs = {
+  "items": [
+    { "text": "Home", "href": "/" },
+    { "text": "Reports", "href": "/reports" },
+    { "text": "PoC Report" }
+  ]
+} %}
+{{ govukBreadcrumbs(breadcrumbs)}}
+
+
 <h1 class="govuk-heading-xl">Modernisation Platform Overview</h1>
 
 <section>
