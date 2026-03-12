@@ -1,0 +1,36 @@
+{% extends "shared/components/base.html" %}
+{% block pageTitle %} AWS Account Standards {% endblock %}
+
+{% block content %}
+
+{% set breadcrumbs = {
+    "items": [
+      { "text": "Home", "href": "/" },
+      { "text": "AWS Account Standards" },
+    ]
+  } %}
+  {{ govukBreadcrumbs(breadcrumbs)
+}}
+
+
+<h1 class="govuk-heading-xl">AWS Account Standards</h1>
+
+<section>
+  <h2 class="govuk-heading-m">Reports</h2>
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-one-third">
+      <h3 class="govuk-heading-s govuk-!-margin-bottom-1">
+        <a
+          class="govuk-link"
+          href="{{ url_for('aws_account_standards_main.poc_report') }}"
+          >PoC AWS Account Standards Report</a
+        >
+      </h3>
+      <p class="govuk-body-s">
+        View a PoC AWS Standards report for one of the Modernisation Platform Test Accounts.
+      </p>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

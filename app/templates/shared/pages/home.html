@@ -11,7 +11,7 @@
   <section>
     <h2 class="govuk-heading-m">Projects</h2>
     <p class="govuk-body-s">
-      Welcome to the Modernisation Platform App! This space is built by passionate engineers for passionate engineers. 
+      Welcome to the Modernisation Platform App! This space is built by passionate engineers for passionate engineers.
       Whether you're exploring new ideas, testing proof of concepts, or maintaining live projects, this is your space to collaborate, innovate, and create solutions that matter.
     </p>
     <div class="govuk-grid-row">
@@ -19,20 +19,29 @@
         <h3 class="govuk-heading-s govuk-!-margin-bottom-1">
           <a class="govuk-link" href="{{ url_for('reports_main.index') }}">Reports</a>
         </h3>
-        <p class="govuk-body-s">View various reports and insights for the Modernisation Platform.</p>
+        <p class="govuk-body-s">view various reports and insights for the modernisation platform.</p>
       </div>
-    <div class="govuk-grid-column-one-third">
+      <div class="govuk-grid-column-one-third">
         <h3 class="govuk-heading-s govuk-!-margin-bottom-1">
           <a class="govuk-link" target="_blank" href="https://user-guide.modernisation-platform.service.justice.gov.uk/">User Guidance</a>
         </h3>
-        <p class="govuk-body-s">View the user guidance for the Modernisation Platform.</p>
+        <p class="govuk-body-s">view the user guidance for the modernisation platform.</p>
       </div>
-    <div class="govuk-grid-column-one-third">
+      <div class="govuk-grid-column-one-third">
         <h3 class="govuk-heading-s govuk-!-margin-bottom-1">
-          <a class="govuk-link" target="_blank" href="https://github-community.cloud-platform.service.justice.gov.uk/repository-standards/teams/Modernisation%20Platform">Repositories</a>
+          <a class="govuk-link" target="_blank" href="https://github-community.cloud-platform.service.justice.gov.uk/repository-standards/teams/modernisation%20platform">repositories</a>
         </h3>
-        <p class="govuk-body-s">View the repositories for the Modernisation Platform.</p>
+        <p class="govuk-body-s">view the repositories for the modernisation platform.</p>
       </div>
+    </div>
+        <div class="govuk-grid-row">
+      <div class="govuk-grid-column-one-third">
+        <h3 class="govuk-heading-s govuk-!-margin-bottom-1">
+          <a class="govuk-link" href="{{ url_for('aws_account_standards_main.index') }}">AWS Account Standards</a>
+        </h3>
+        <p class="govuk-body-s">View AWS Account Standards Reports</p>
+      </div>
+    </div>
   </section>
 
 {% endblock %}
