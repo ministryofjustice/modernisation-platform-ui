@@ -1,0 +1,36 @@
+{% extends "shared/components/base.html" %}
+{% block pageTitle %} Milk Monitor {% endblock %}
+
+{% block content %}
+
+{% set breadcrumbs = {
+    "items": [
+      { "text": "Home", "href": "/" },
+      { "text": "Milk Monitor" },
+    ]
+  } %}
+  {{ govukBreadcrumbs(breadcrumbs)
+}}
+
+
+<h1 class="govuk-heading-xl">Milk Monitor</h1>
+
+<section>
+  <h2 class="govuk-heading-m">Milk Monitor Dashboards</h2>
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-one-third">
+      <h3 class="govuk-heading-s govuk-!-margin-bottom-1">
+        <a
+          class="govuk-link"
+          href="{{ url_for('milk_monitor_main.milk_monitor_dashboard') }}"
+          >Milk Monitor Dashboard</a
+        >
+      </h3>
+      <p class="govuk-body-s">
+        View an interactive Milk Monitor dashboard.
+      </p>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

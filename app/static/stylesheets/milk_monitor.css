@@ -1,0 +1,54 @@
+.mm-tile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+  gap: 14px;
+}
+
+.mm-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: "GDS Transport", arial, sans-serif;
+  font-size: 1rem;
+  text-decoration: none;
+  background: #fff;
+  border: 2px solid #b1b4b6;
+  border-left: 5px solid #b1b4b6;
+  padding: 16px 16px 12px;
+  transition: box-shadow .15s ease-out;
+  color: #0b0c0c;
+}
+
+.mm-tile:hover,
+.mm-tile:focus {
+  box-shadow: 0 3px 10px rgba(0, 0, 0, .18);
+  outline: 3px solid #fd0;
+  outline-offset: 0;
+}
+
+.mm-tile--requires_attention { border-left-color: #d4351c; background: #fcf0ef; }
+.mm-tile--ok                 { border-left-color: #00703c; background: #f0faf4; }
+.mm-tile--manual_check,
+.mm-tile--unknown            { border-left-color: #f47738; background: #fef7ee; }
+
+.mm-tile__count {
+  display: block;
+  font-family: "GDS Transport", arial, sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.mm-tile--requires_attention .mm-tile__count { color: #d4351c; }
+.mm-tile--ok                 .mm-tile__count { color: #00703c; }
+.mm-tile--manual_check       .mm-tile__count,
+.mm-tile--unknown            .mm-tile__count { color: #f47738; }
+
+.mm-tile__title  { font-family: "GDS Transport", arial, sans-serif; font-size: .875rem; font-weight: 700; line-height: 1.3; }
+.mm-tile__status { font-family: "GDS Transport", arial, sans-serif; font-size: .75rem; color: #505a5f; margin-top: auto; }
+
+#mm-overview-chart { max-width: 220px; max-height: 220px; display: block; margin: 0 auto; }
+
+.mm-chart-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; justify-content: center; margin-top: 10px; }
+.mm-chart-legend span { font-size: .8125rem; color: #505a5f; display: flex; align-items: center; gap: 5px; }
+.mm-chart-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 2px; flex-shrink: 0; }

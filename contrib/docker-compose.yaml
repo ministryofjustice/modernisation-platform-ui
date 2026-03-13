@@ -3,6 +3,9 @@ services:
   app:
     image: "${CONTAINER_IMAGE_NAME:-ministryofjustice/modernisation-platform-ui}:${CONTAINER_IMAGE_TAG:-local}"
     platform: linux/amd64
+    env_file:
+      - path: ../.env
+        required: false
     environment:
       # Flask
       - APP_SECRET_KEY=dev
@@ -18,7 +21,6 @@ services:
       - ENV=local
 
       # GitHub
-      - ADMIN_GITHUB_TOKEN=test
       - GITHUB_APP_INSTALLATION_ID=12345678
 
       # Local
