@@ -10,7 +10,7 @@ dependencies = [
   "flask-cors==6.0.2",
   "flask-limiter==4.1.1",
   "flask-sqlalchemy==3.1.1",
-  "govuk-frontend-jinja==3.8.0",
+  "govuk-frontend-jinja==4.0.0",
   "gunicorn==25.1.0",
   "pygithub==2.8.1",
   "pynacl==1.6.2",
