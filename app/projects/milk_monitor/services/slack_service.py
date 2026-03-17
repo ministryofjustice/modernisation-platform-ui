@@ -365,15 +365,15 @@ def get_daniel_spaniel_messages(channel_name: str) -> dict:
 
 
 def get_slack_pr_links(channel_name: str) -> dict:
-    """Return unresolved GitHub PR links posted in a Slack channel in the past 25 hours."""
+    """Return unresolved and completed GitHub PR links posted in a Slack channel in the past 25 hours."""
     headers = _get_auth_headers()
     if not headers:
-        return {"count": 0, "messages": []}
+        return {"count": 0, "messages": [], "completed": []}
 
     try:
         channel_id = _find_channel_id(headers, channel_name)
         if not channel_id:
-            return {"count": 0, "messages": []}
+            return {"count": 0, "messages": [], "completed": []}
 
         lookback = str(int(time.time()) - (25 * 60 * 60))
         response = requests.get(
@@ -383,10 +383,11 @@ def get_slack_pr_links(channel_name: str) -> dict:
             timeout=10,
         )
         if response.status_code != 200 or not response.json().get("ok"):
-            return {"count": 0, "messages": []}
+            return {"count": 0, "messages": [], "completed": []}
 
         pr_pattern = re.compile(r"https://github\.com/([^/]+)/([^/]+)/pull/(\d+)")
         pr_messages: list[dict] = []
+        completed: list[dict] = []
 
         for msg in response.json().get("messages", []):
             # Skip bots and thread replies
@@ -401,35 +402,60 @@ def get_slack_pr_links(channel_name: str) -> dict:
                 continue
 
             reactions = msg.get("reactions", [])
-            if any(
+            is_completed = any(
                 r.get("name") in PR_COMPLETION_EMOJIS or r.get("name", "").startswith("approved")
                 for r in reactions
-            ):
-                continue
+            )
 
             user_id = msg.get("user", "Unknown")
             user_name = get_slack_user_name(user_id)
             ts_clean = msg.get("ts", "").replace(".", "")
             slack_link = f"https://mojdt.slack.com/archives/{channel_id}/p{ts_clean}"
 
-            for org, repo, pr_num in pr_links:
-                pr_messages.append(
-                    {
-                        "user": user_name,
-                        "user_id": user_id,
-                        "text": f"PR #{pr_num} in {org}/{repo}",
-                        "full_text": text,
-                        "timestamp": msg.get("ts"),
-                        "link": f"https://github.com/{org}/{repo}/pull/{pr_num}",
-                        "slack_link": slack_link,
-                    }
-                )
+            if is_completed:
+                completed_by = None
+                for r in reactions:
+                    name = r.get("name", "")
+                    if name in PR_COMPLETION_EMOJIS or name.startswith("approved"):
+                        users = r.get("users", [])
+                        if users:
+                            completed_by = get_slack_user_name(users[0])
+                        break
+                for org, repo, pr_num in pr_links:
+                    completed.append(
+                        {
+                            "user": user_name,
+                            "user_id": user_id,
+                            "text": f"PR #{pr_num} in {org}/{repo}",
+                            "full_text": text,
+                            "timestamp": msg.get("ts"),
+                            "link": f"https://github.com/{org}/{repo}/pull/{pr_num}",
+                            "slack_link": slack_link,
+                            "completed_by": completed_by,
+                        }
+                    )
+            else:
+                for org, repo, pr_num in pr_links:
+                    pr_messages.append(
+                        {
+                            "user": user_name,
+                            "user_id": user_id,
+                            "text": f"PR #{pr_num} in {org}/{repo}",
+                            "full_text": text,
+                            "timestamp": msg.get("ts"),
+                            "link": f"https://github.com/{org}/{repo}/pull/{pr_num}",
+                            "slack_link": slack_link,
+                        }
+                    )
 
-        logger.info(f"#{channel_name}: {len(pr_messages)} unresolved PR links")
-        return {"count": len(pr_messages), "messages": pr_messages}
+        pr_messages.sort(key=lambda m: float(m.get("timestamp") or 0), reverse=True)
+        completed.sort(key=lambda m: float(m.get("timestamp") or 0), reverse=True)
+
+        logger.info(f"#{channel_name}: {len(pr_messages)} unresolved PR links, {len(completed)} completed")
+        return {"count": len(pr_messages), "messages": pr_messages, "completed": completed}
 
     except Exception as e:
         logger.error(
             f"Error fetching PR links from #{channel_name}: {e}", exc_info=True
         )
-        return {"count": 0, "messages": []}
+        return {"count": 0, "messages": [], "completed": []}

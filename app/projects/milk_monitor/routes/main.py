@@ -179,6 +179,7 @@ def _fetch_task_data(task: dict) -> dict:
                 **base,
                 "count": count,
                 "messages": _annotate_times(result.get("messages", []), _format_slack_ts),
+                "completed": _annotate_times(result.get("completed", []), _format_slack_ts),
                 "status": "requires_attention" if count > 0 else "ok",
             }
 

@@ -1,5 +1,6 @@
 import logging
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta
 
 import requests
@@ -119,30 +120,41 @@ def get_dependabot_prs() -> dict:
             logger.error(f"Failed searching for Dependabot PRs: {response.status_code}")
             return {"count": 0, "messages": []}
 
-        prs = response.json().get("items", [])
-        messages: list[dict] = []
+        prs = [
+            pr for pr in response.json().get("items", [])
+            if pr["repository_url"].replace("https://api.github.com/repos/", "")
+            != "ministryofjustice/modernisation-platform-environments"
+        ]
 
-        for pr in prs:
+        def _build_pr_message(pr: dict) -> dict:
             repo_full_name = pr["repository_url"].replace(
                 "https://api.github.com/repos/", ""
             )
-            if repo_full_name == "ministryofjustice/modernisation-platform-environments":
-                continue
-
             check_status = _get_pr_check_status(headers, repo_full_name, pr["number"])
-            messages.append(
-                {
-                    "user": "Dependabot",
-                    "user_id": "dependabot",
-                    "text": f"{pr['title']} ({repo_full_name})",
-                    "full_text": f"Repository: {repo_full_name}\nPR: {pr['title']}\nUpdated: {pr['updated_at']}",
-                    "timestamp": pr["updated_at"],
-                    "link": pr["html_url"],
-                    "check_status": check_status,
-                    "repo": repo_full_name,
-                    "pr_number": pr["number"],
-                }
-            )
+            return {
+                "user": "Dependabot",
+                "user_id": "dependabot",
+                "text": f"{pr['title']} ({repo_full_name})",
+                "full_text": f"Repository: {repo_full_name}\nPR: {pr['title']}\nUpdated: {pr['updated_at']}",
+                "timestamp": pr["updated_at"],
+                "link": pr["html_url"],
+                "check_status": check_status,
+                "repo": repo_full_name,
+                "pr_number": pr["number"],
+            }
+
+        messages: list[dict] = []
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            futures = {executor.submit(_build_pr_message, pr): pr for pr in prs}
+            for future in as_completed(futures):
+                try:
+                    messages.append(future.result())
+                except Exception as e:
+                    pr = futures[future]
+                    logger.warning(f"Failed to fetch check status for PR #{pr['number']}: {e}")
+
+        # Restore stable ordering (newest updated first)
+        messages.sort(key=lambda m: m["timestamp"], reverse=True)
 
         logger.info(f"Found {len(messages)} Dependabot PRs requiring team review")
         return {"count": len(messages), "messages": messages}

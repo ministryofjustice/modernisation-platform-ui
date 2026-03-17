@@ -46,6 +46,78 @@
     return d.innerHTML;
   }
 
+  /* ── Favicon badge ──────────────────────────────────────────────────────── */
+  function updateFavicon(count) {
+    var link = document.getElementById('mm-favicon');
+    if (!link) { return; }
+
+    // Persist the original href on first call so we can restore it
+    if (!link.getAttribute('data-orig-href')) {
+      link.setAttribute('data-orig-href', link.href);
+    }
+    var origHref = link.getAttribute('data-orig-href');
+
+    if (!count || count < 1) {
+      link.href = origHref;
+      return;
+    }
+
+    var size = 32;
+    var label = count > 99 ? '99+' : String(count);
+
+    function drawBadge(ctx) {
+      var radius = label.length > 2 ? 8 : 7;
+      var cx = size - radius - 1;
+      var cy = radius + 1;
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius + 1, 0, 2 * Math.PI);
+      ctx.fillStyle = '#d4351c';
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold ' + (label.length > 2 ? 7 : 9) + 'px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(label, cx, cy);
+    }
+
+    // Fetch the SVG as a blob then create an object URL — drawing a blob URL
+    // onto a canvas does NOT taint it, unlike drawing a direct SVG src URL.
+    fetch(origHref, { credentials: 'same-origin' })
+      .then(function (r) { return r.blob(); })
+      .then(function (blob) {
+        var blobUrl = URL.createObjectURL(blob);
+        var img = new Image();
+        img.onload = function () {
+          var cvs = document.createElement('canvas');
+          cvs.width = size;
+          cvs.height = size;
+          var ctx = cvs.getContext('2d');
+          ctx.drawImage(img, 0, 0, size, size);
+          URL.revokeObjectURL(blobUrl);
+          drawBadge(ctx);
+          link.href = cvs.toDataURL('image/png');
+        };
+        img.src = blobUrl;
+      })
+      .catch(function () {
+        // Fallback: plain red circle with count if SVG fetch fails
+        var cvs = document.createElement('canvas');
+        cvs.width = size;
+        cvs.height = size;
+        var ctx = cvs.getContext('2d');
+        ctx.beginPath();
+        ctx.arc(size / 2, size / 2, size / 2, 0, 2 * Math.PI);
+        ctx.fillStyle = '#d4351c';
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 14px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(label, size / 2, size / 2);
+        link.href = cvs.toDataURL('image/png');
+      });
+  }
+
   function checkStatusTag(status) {
     if (status === 'success') return '<strong class="govuk-tag govuk-tag--green">Passing</strong>';
     if (status === 'failure' || status === 'error') return '<strong class="govuk-tag govuk-tag--red">Failing</strong>';
@@ -60,6 +132,32 @@
     return '<table class="govuk-table govuk-!-margin-bottom-0">' +
       '<thead class="govuk-table__head"><tr class="govuk-table__row">' + ths + '</tr></thead>' +
       '<tbody class="govuk-table__body">' + bodyRows + '</tbody></table>';
+  }
+
+  function buildCompletedHTML(task) {
+    if (!task.completed || task.completed.length === 0) { return ''; }
+    var rows = '';
+    task.completed.forEach(function (msg) {
+      rows += '<tr class="govuk-table__row">' +
+        '<td class="govuk-table__cell govuk-!-white-space-nowrap">' + esc(msg.user) + '</td>' +
+        '<td class="govuk-table__cell">' +
+          (msg.link
+            ? '<a class="govuk-link" href="' + esc(msg.link) + '" target="_blank" rel="noopener noreferrer">' + esc(msg.text) + '</a>'
+            : esc(msg.text)) +
+        '</td>' +
+        '<td class="govuk-table__cell govuk-!-white-space-nowrap">' + esc(msg.time) + '</td>' +
+        '<td class="govuk-table__cell">✅ ' + esc(msg.completed_by || '—') + '</td>' +
+        '</tr>';
+    });
+    var count = task.completed.length;
+    var summary = count + ' completed item' + (count !== 1 ? 's' : '');
+    var table = tableWrap(['From', 'Message', 'Time', 'Completed by'], rows);
+    return '<details class="govuk-details">' +
+      '<summary class="govuk-details__summary">' +
+      '<span class="govuk-details__summary-text">' + esc(summary) + '</span>' +
+      '</summary>' +
+      '<div class="govuk-details__text">' + table + '</div>' +
+      '</details>';
   }
 
   function buildTableHTML(task) {
@@ -156,6 +254,7 @@
   }
 
   var previousTotalCount = parseInt(canvas.dataset.red, 10) || 0;
+  updateFavicon(previousTotalCount);
 
   /* ── Polling ────────────────────────────────────────────────────────────── */
   function poll() {
@@ -184,6 +283,12 @@
             activeContainer.innerHTML = task.messages && task.messages.length ? buildTableHTML(task) : '';
           }
 
+          /* Detail card — completed messages */
+          var completedContainer = document.getElementById(task.id + '-completed-section');
+          if (completedContainer) {
+            completedContainer.innerHTML = buildCompletedHTML(task);
+          }
+
           if (task.status === 'requires_attention') { rc++; }
           else if (task.status === 'ok') { gc++; }
           else { ac++; }
@@ -207,6 +312,7 @@
         /* Sound alert if new items have appeared since last poll */
         if (data.total_count > previousTotalCount) { playSoundAlert(); }
         previousTotalCount = data.total_count;
+        updateFavicon(data.total_count);
 
         /* Legend */
         updateLegendText(document.getElementById('mm-legend-red'),   '\u00a0' + rc + ' need action');

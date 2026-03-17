@@ -3,6 +3,7 @@
 {% block head %}
   {{ super() }}
   <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='stylesheets/milk_monitor.css') }}">
+  <link id="mm-favicon" rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg') }}">
 {% endblock %}
 
 {% block pageTitle %}Milk Monitor Dashboard{% endblock %}
@@ -245,38 +246,40 @@
         {{ message_table(task, task.messages) }}
       {% endif %}
     </div>
-    {% if task.completed %}
-      {% set completed_html %}
-        <table class="govuk-table govuk-!-margin-bottom-0">
-          <thead class="govuk-table__head">
-            <tr class="govuk-table__row">
-              <th scope="col" class="govuk-table__header">From</th>
-              <th scope="col" class="govuk-table__header">Message</th>
-              <th scope="col" class="govuk-table__header">Time</th>
-              <th scope="col" class="govuk-table__header">Completed by</th>
-            </tr>
-          </thead>
-          <tbody class="govuk-table__body">
-            {% for msg in task.completed %}
+    <div id="{{ task.id }}-completed-section">
+      {% if task.completed %}
+        {% set completed_html %}
+          <table class="govuk-table govuk-!-margin-bottom-0">
+            <thead class="govuk-table__head">
               <tr class="govuk-table__row">
-                <td class="govuk-table__cell govuk-!-white-space-nowrap">{{ msg.user }}</td>
-                <td class="govuk-table__cell">
-                  {% if msg.link %}
-                    <a class="govuk-link" href="{{ msg.link }}" target="_blank" rel="noopener noreferrer">{{ msg.text }}</a>
-                  {% else %}
-                    {{ msg.text }}
-                  {% endif %}
-                </td>
-                <td class="govuk-table__cell govuk-!-white-space-nowrap">{{ msg.time }}</td>
-                <td class="govuk-table__cell">✅ {{ msg.completed_by or "—" }}</td>
+                <th scope="col" class="govuk-table__header">From</th>
+                <th scope="col" class="govuk-table__header">Message</th>
+                <th scope="col" class="govuk-table__header">Time</th>
+                <th scope="col" class="govuk-table__header">Completed by</th>
               </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      {% endset %}
-      {% set completed_summary %}{{ task.completed | length }} completed item{{ "s" if task.completed | length != 1 }}{% endset %}
-      {{ govukDetails({ "summaryText": completed_summary, "html": completed_html }) }}
-    {% endif %}
+            </thead>
+            <tbody class="govuk-table__body">
+              {% for msg in task.completed %}
+                <tr class="govuk-table__row">
+                  <td class="govuk-table__cell govuk-!-white-space-nowrap">{{ msg.user }}</td>
+                  <td class="govuk-table__cell">
+                    {% if msg.link %}
+                      <a class="govuk-link" href="{{ msg.link }}" target="_blank" rel="noopener noreferrer">{{ msg.text }}</a>
+                    {% else %}
+                      {{ msg.text }}
+                    {% endif %}
+                  </td>
+                  <td class="govuk-table__cell govuk-!-white-space-nowrap">{{ msg.time }}</td>
+                  <td class="govuk-table__cell">✅ {{ msg.completed_by or "—" }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% endset %}
+        {% set completed_summary %}{{ task.completed | length }} completed item{{ "s" if task.completed | length != 1 }}{% endset %}
+        {{ govukDetails({ "summaryText": completed_summary, "html": completed_html }) }}
+      {% endif %}
+    </div>
   {% endmacro %}
 
   {# Render a full summary card for one responsibility ──────────────────────── #}
