@@ -277,6 +277,26 @@
             if (statusEl) { statusEl.textContent = statusLabel(task.status, task.count); }
           }
 
+          /* Detail card — status tag */
+          var statusTagEl = document.getElementById(task.id + '-status-tag');
+          if (statusTagEl) {
+            var tagClass, tagText;
+            if (task.status === 'requires_attention') {
+              tagClass = 'govuk-tag govuk-tag--red';
+              tagText = task.count + ' item' + (task.count !== 1 ? 's' : '') + ' to action';
+            } else if (task.status === 'ok') {
+              tagClass = 'govuk-tag govuk-tag--green';
+              tagText = 'Up to date';
+            } else if (task.status === 'manual_check') {
+              tagClass = 'govuk-tag govuk-tag--yellow';
+              tagText = 'Manual check needed';
+            } else {
+              tagClass = 'govuk-tag govuk-tag--grey';
+              tagText = 'Unknown';
+            }
+            statusTagEl.innerHTML = '<strong class="' + tagClass + '">' + tagText + '</strong>';
+          }
+
           /* Detail card — active messages table */
           var activeContainer = document.getElementById(task.id + '-active-table');
           if (activeContainer) {

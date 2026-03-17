@@ -316,21 +316,42 @@ def get_daniel_spaniel_messages(channel_name: str) -> dict:
             return {"count": 0, "messages": []}
 
         lookback = str(int(time.time()) - (25 * 60 * 60))
-        response = requests.get(
-            f"{SLACK_API_BASE}/conversations.history",
-            headers=headers,
-            params={"channel": channel_id, "oldest": lookback, "limit": 100},
-            timeout=10,
-        )
-        if response.status_code != 200 or not response.json().get("ok"):
-            return {"count": 0, "messages": []}
+        all_messages: list[dict] = []
+        cursor = None
+
+        for _ in range(3):  # up to 3 pages / 300 messages
+            params: dict = {"channel": channel_id, "oldest": lookback, "limit": 100}
+            if cursor:
+                params["cursor"] = cursor
+
+            response = requests.get(
+                f"{SLACK_API_BASE}/conversations.history",
+                headers=headers,
+                params=params,
+                timeout=10,
+            )
+            if response.status_code != 200:
+                break
+
+            data = response.json()
+            if not data.get("ok"):
+                break
+
+            batch = data.get("messages", [])
+            if not batch:
+                break
+
+            all_messages.extend(batch)
+            cursor = data.get("response_metadata", {}).get("next_cursor")
+            if not cursor:
+                break
 
         daniel_names = frozenset(
             ["daniel the manual spaniel", "daniel", "daniel the spaniel"]
         )
         messages: list[dict] = []
 
-        for msg in response.json().get("messages", []):
+        for msg in all_messages:
             bot_id = msg.get("bot_id")
             username = msg.get("username", "").lower()
             text_lower = msg.get("text", "").lower()
