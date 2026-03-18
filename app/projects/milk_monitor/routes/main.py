@@ -297,6 +297,11 @@ def milk_monitor_dashboard():
     )
 
 
+def _strip_full_text(messages: list[dict]) -> list[dict]:
+    """Remove the full_text field from message dicts before sending to clients."""
+    return [{k: v for k, v in m.items() if k != "full_text"} for m in messages]
+
+
 @milk_monitor_main.route("/data", methods=["GET"])
 @requires_auth
 def milk_monitor_data():
@@ -321,8 +326,8 @@ def milk_monitor_data():
                     "table_type": result.get("table_type", "manual"),
                     "status": result["status"],
                     "count": result["count"],
-                    "messages": result.get("messages", []),
-                    "completed": result.get("completed", []),
+                    "messages": _strip_full_text(result.get("messages", [])),
+                    "completed": _strip_full_text(result.get("completed", [])),
                 })
             except Exception as e:
                 logger.error(f"Data endpoint: task {task['id']} failed: {e}")
