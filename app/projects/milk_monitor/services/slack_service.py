@@ -350,6 +350,7 @@ def get_daniel_spaniel_messages(channel_name: str) -> dict:
             ["daniel the manual spaniel", "daniel", "daniel the spaniel"]
         )
         messages: list[dict] = []
+        completed: list[dict] = []
 
         for msg in all_messages:
             bot_id = msg.get("bot_id")
@@ -363,19 +364,40 @@ def get_daniel_spaniel_messages(channel_name: str) -> dict:
             if is_daniel or (bot_id and "daniel" in username):
                 full_text = msg.get("text", "")
                 ts = msg.get("ts", "").replace(".", "")
-                messages.append(
-                    {
-                        "user": msg.get("username", "Daniel the Manual Spaniel"),
-                        "user_id": bot_id or "bot",
-                        "text": full_text[:200] + ("..." if len(full_text) > 200 else ""),
-                        "full_text": full_text,
-                        "timestamp": msg.get("ts"),
-                        "link": f"https://mojdt.slack.com/archives/{channel_id}/p{ts}",
-                    }
+
+                reactions = msg.get("reactions", [])
+                has_approved = any(r.get("name", "").startswith("approved") for r in reactions)
+                has_completion = (
+                    any(r.get("name") in COMPLETION_EMOJIS for r in reactions) or has_approved
                 )
 
-        logger.info(f"#{channel_name}: {len(messages)} Daniel the Spaniel messages")
-        return {"count": len(messages), "messages": messages}
+                completed_by = None
+                if has_completion:
+                    for r in reactions:
+                        name = r.get("name", "")
+                        if name in COMPLETION_EMOJIS or name.startswith("approved"):
+                            users = r.get("users", [])
+                            if users:
+                                completed_by = get_slack_user_name(users[0])
+                            break
+
+                message_data = {
+                    "user": msg.get("username", "Daniel the Manual Spaniel"),
+                    "user_id": bot_id or "bot",
+                    "text": full_text[:200] + ("..." if len(full_text) > 200 else ""),
+                    "full_text": full_text,
+                    "timestamp": msg.get("ts"),
+                    "link": f"https://mojdt.slack.com/archives/{channel_id}/p{ts}",
+                }
+
+                if has_completion:
+                    message_data["completed_by"] = completed_by
+                    completed.append(message_data)
+                else:
+                    messages.append(message_data)
+
+        logger.info(f"#{channel_name}: {len(messages)} active, {len(completed)} completed Daniel the Spaniel messages")
+        return {"count": len(messages), "messages": messages, "completed": completed}
 
     except Exception as e:
         logger.error(
