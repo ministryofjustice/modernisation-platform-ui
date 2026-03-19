@@ -1,0 +1,346 @@
+{% extends "shared/components/base.html" %}
+
+{% block head %}
+  {{ super() }}
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='stylesheets/milk_monitor.css') }}">
+  <link id="mm-favicon" rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg') }}">
+{% endblock %}
+
+{% block pageTitle %}Milk Monitor Dashboard{% endblock %}
+
+{% block content %}
+
+  {% set breadcrumbs = {
+    "items": [
+      { "text": "Home", "href": "/" },
+      { "text": "Milk Monitor", "href": "/milk-monitor" },
+      { "text": "Dashboard" }
+    ]
+  } %}
+  {{ govukBreadcrumbs(breadcrumbs) }}
+
+  <h1 class="govuk-heading-xl">Milk Monitor Dashboard</h1>
+
+  {# ── Summary banner — both always rendered; JS toggles hidden on poll ────── #}
+  <div id="mm-banner-action" class="govuk-notification-banner govuk-notification-banner--important"
+       role="alert"
+       aria-labelledby="govuk-notification-banner-title"
+       data-module="govuk-notification-banner"
+       {% if total_count == 0 %}hidden{% endif %}>
+    <div class="govuk-notification-banner__header">
+      <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">Action required</h2>
+    </div>
+    <div class="govuk-notification-banner__content">
+      <p class="govuk-body govuk-!-margin-bottom-0">
+        There are <strong id="mm-banner-count">{{ total_count }}</strong>
+        item{{ "s" if total_count != 1 }} requiring attention.
+      </p>
+    </div>
+  </div>
+  <div id="mm-banner-clear" class="govuk-notification-banner govuk-notification-banner--success"
+       role="alert"
+       aria-labelledby="govuk-notification-banner-title-clear"
+       data-module="govuk-notification-banner"
+       {% if total_count > 0 %}hidden{% endif %}>
+    <div class="govuk-notification-banner__header">
+      <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title-clear">All clear</h2>
+    </div>
+    <div class="govuk-notification-banner__content">
+      <p class="govuk-body govuk-!-margin-bottom-0">No items currently require attention.</p>
+    </div>
+  </div>
+
+  {# ── At a glance overview ────────────────────────────────────────────────── #}
+
+  <h2 class="govuk-heading-l govuk-!-margin-top-6">At a glance</h2>
+
+  <div class="govuk-grid-row govuk-!-margin-bottom-8">
+    <div class="govuk-grid-column-two-thirds">
+      <div class="mm-tile-grid">
+        {% for task in core_tasks + optional_tasks %}
+          <a href="#{{ task.id }}" class="mm-tile mm-tile--{{ task.status }}" data-task-id="{{ task.id }}">
+            <span class="mm-tile__count">
+              {%- if task.status == "requires_attention" -%}{{ task.count }}
+              {%- elif task.status == "ok" -%}✓
+              {%- else -%}!{%- endif -%}
+            </span>
+            <span class="mm-tile__title">{{ task.title }}</span>
+            <span class="mm-tile__status">
+              {%- if task.status == "requires_attention" -%}
+                {{ task.count }} item{{ "s" if task.count != 1 }} to action
+              {%- elif task.status == "ok" -%}All clear
+              {%- else -%}Manual check needed{%- endif -%}
+            </span>
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="govuk-grid-column-one-third">
+      <canvas id="mm-overview-chart"
+              data-red="{{ status_counts.red }}"
+              data-green="{{ status_counts.green }}"
+              data-amber="{{ status_counts.amber }}"
+              data-poll-url="{{ url_for('milk_monitor_main.milk_monitor_data') }}"
+              aria-label="Status overview: {{ status_counts.red }} need action, {{ status_counts.green }} OK, {{ status_counts.amber }} manual check"
+              role="img"></canvas>
+      <div class="mm-chart-legend">
+        <span id="mm-legend-red"><i style="background:#d4351c"></i>{{ status_counts.red }} need action</span>
+        <span id="mm-legend-green"><i style="background:#00703c"></i>{{ status_counts.green }} OK</span>
+        <span id="mm-legend-amber"><i style="background:#f47738"></i>{{ status_counts.amber }} manual check</span>
+      </div>
+      <p id="mm-last-updated" style="font-size:.75rem;color:#505a5f;text-align:center;margin-top:8px;">
+        Updated {{ fetched_at }}
+      </p>
+      <div class="govuk-checkboxes govuk-checkboxes--small" style="margin-top:12px;">
+        <div class="govuk-checkboxes__item">
+          <input class="govuk-checkboxes__input" id="mm-sound-toggle" type="checkbox">
+          <label class="govuk-label govuk-checkboxes__label" for="mm-sound-toggle"
+                 style="font-size:.8125rem;">
+            Sound alert on new items
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Shared macros ───────────────────────────────────────────────────────── #}
+
+  {# Render a priority tag #}
+  {% macro priority_tag(priority) %}
+    {% if priority == "critical" %}
+      <strong class="govuk-tag govuk-tag--red">Critical</strong>
+    {% elif priority == "high" %}
+      <strong class="govuk-tag govuk-tag--orange">High</strong>
+    {% elif priority == "medium" %}
+      <strong class="govuk-tag govuk-tag--yellow">Medium</strong>
+    {% else %}
+      <strong class="govuk-tag govuk-tag--grey">Low</strong>
+    {% endif %}
+  {% endmacro %}
+
+  {# Render a status tag #}
+  {% macro status_tag(task) %}
+    {% if task.status == "requires_attention" %}
+      <strong class="govuk-tag govuk-tag--red">
+        {{ task.count }} item{{ "s" if task.count != 1 }} to action
+      </strong>
+    {% elif task.status == "ok" %}
+      <strong class="govuk-tag govuk-tag--green">Up to date</strong>
+    {% elif task.status == "manual_check" %}
+      <strong class="govuk-tag govuk-tag--yellow">Manual check needed</strong>
+    {% else %}
+      <strong class="govuk-tag govuk-tag--grey">Unknown</strong>
+    {% endif %}
+  {% endmacro %}
+
+  {# Render the check-status tag for Dependabot PRs #}
+  {% macro check_status_tag(check_status) %}
+    {% if check_status == "success" %}
+      <strong class="govuk-tag govuk-tag--green">Passing</strong>
+    {% elif check_status == "failure" or check_status == "error" %}
+      <strong class="govuk-tag govuk-tag--red">Failing</strong>
+    {% elif check_status == "pending" %}
+      <strong class="govuk-tag govuk-tag--yellow">Pending</strong>
+    {% else %}
+      <strong class="govuk-tag govuk-tag--grey">Unknown</strong>
+    {% endif %}
+  {% endmacro %}
+
+  {# Render a message table (shared by active and completed) ─────────────── #}
+  {% macro message_table(task, messages) %}
+    {% if task.table_type == "dependabot" %}
+      <table class="govuk-table govuk-!-margin-bottom-0">
+        <thead class="govuk-table__head">
+          <tr class="govuk-table__row">
+            <th scope="col" class="govuk-table__header">PR</th>
+            <th scope="col" class="govuk-table__header">Updated</th>
+            <th scope="col" class="govuk-table__header">CI status</th>
+          </tr>
+        </thead>
+        <tbody class="govuk-table__body">
+          {% for msg in messages %}
+            <tr class="govuk-table__row">
+              <td class="govuk-table__cell">
+                <a class="govuk-link" href="{{ msg.link }}" target="_blank" rel="noopener noreferrer">{{ msg.text }}</a>
+              </td>
+              <td class="govuk-table__cell govuk-!-white-space-nowrap">{{ msg.time }}</td>
+              <td class="govuk-table__cell">{{ check_status_tag(msg.check_status) }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% elif task.table_type == "workflows" %}
+      <table class="govuk-table govuk-!-margin-bottom-0">
+        <thead class="govuk-table__head">
+          <tr class="govuk-table__row">
+            <th scope="col" class="govuk-table__header">Workflow</th>
+            <th scope="col" class="govuk-table__header">Author</th>
+            <th scope="col" class="govuk-table__header">Time</th>
+          </tr>
+        </thead>
+        <tbody class="govuk-table__body">
+          {% for msg in messages %}
+            <tr class="govuk-table__row">
+              <td class="govuk-table__cell">
+                <a class="govuk-link" href="{{ msg.link }}" target="_blank" rel="noopener noreferrer">{{ msg.text }}</a>
+              </td>
+              <td class="govuk-table__cell">{{ msg.user }}</td>
+              <td class="govuk-table__cell govuk-!-white-space-nowrap">{{ msg.time }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% elif task.table_type == "pr_links" %}
+      <table class="govuk-table govuk-!-margin-bottom-0">
+        <thead class="govuk-table__head">
+          <tr class="govuk-table__row">
+            <th scope="col" class="govuk-table__header">PR</th>
+            <th scope="col" class="govuk-table__header">Posted by</th>
+            <th scope="col" class="govuk-table__header">Time</th>
+          </tr>
+        </thead>
+        <tbody class="govuk-table__body">
+          {% for msg in messages %}
+            <tr class="govuk-table__row">
+              <td class="govuk-table__cell">
+                <a class="govuk-link" href="{{ msg.link }}" target="_blank" rel="noopener noreferrer">{{ msg.text }}</a>
+              </td>
+              <td class="govuk-table__cell">{{ msg.user }}</td>
+              <td class="govuk-table__cell govuk-!-white-space-nowrap">{{ msg.time }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <table class="govuk-table govuk-!-margin-bottom-0">
+        <thead class="govuk-table__head">
+          <tr class="govuk-table__row">
+            <th scope="col" class="govuk-table__header">From</th>
+            <th scope="col" class="govuk-table__header">Message</th>
+            <th scope="col" class="govuk-table__header">Time</th>
+            <th scope="col" class="govuk-table__header">Acknowledged by</th>
+          </tr>
+        </thead>
+        <tbody class="govuk-table__body">
+          {% for msg in messages %}
+            <tr class="govuk-table__row">
+              <td class="govuk-table__cell govuk-!-white-space-nowrap">{{ msg.user }}</td>
+              <td class="govuk-table__cell">
+                <a class="govuk-link" href="{{ msg.link }}" target="_blank" rel="noopener noreferrer">{{ msg.text }}</a>
+              </td>
+              <td class="govuk-table__cell govuk-!-white-space-nowrap">{{ msg.time }}</td>
+              <td class="govuk-table__cell">
+                {% if msg.acknowledged_by %}👀 {{ msg.acknowledged_by }}{% else %}&mdash;{% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  {% endmacro %}
+
+  {# Render active messages directly, completed in a collapsed section ─────── #}
+  {% macro message_details(task) %}
+    <div id="{{ task.id }}-active-table">
+      {% if task.messages %}
+        {{ message_table(task, task.messages) }}
+      {% endif %}
+    </div>
+    <div id="{{ task.id }}-completed-section">
+      {% if task.completed %}
+        {% set completed_html %}
+          <table class="govuk-table govuk-!-margin-bottom-0">
+            <thead class="govuk-table__head">
+              <tr class="govuk-table__row">
+                <th scope="col" class="govuk-table__header">From</th>
+                <th scope="col" class="govuk-table__header">Message</th>
+                <th scope="col" class="govuk-table__header">Time</th>
+                <th scope="col" class="govuk-table__header">Completed by</th>
+              </tr>
+            </thead>
+            <tbody class="govuk-table__body">
+              {% for msg in task.completed %}
+                <tr class="govuk-table__row">
+                  <td class="govuk-table__cell govuk-!-white-space-nowrap">{{ msg.user }}</td>
+                  <td class="govuk-table__cell">
+                    {% if msg.link %}
+                      <a class="govuk-link" href="{{ msg.link }}" target="_blank" rel="noopener noreferrer">{{ msg.text }}</a>
+                    {% else %}
+                      {{ msg.text }}
+                    {% endif %}
+                  </td>
+                  <td class="govuk-table__cell govuk-!-white-space-nowrap">{{ msg.time }}</td>
+                  <td class="govuk-table__cell">✅ {{ msg.completed_by or "—" }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% endset %}
+        {% set completed_summary %}{{ task.completed | length }} completed item{{ "s" if task.completed | length != 1 }}{% endset %}
+        {{ govukDetails({ "summaryText": completed_summary, "html": completed_html }) }}
+      {% endif %}
+    </div>
+  {% endmacro %}
+
+  {# Render a full summary card for one responsibility ──────────────────────── #}
+  {% macro task_card(task) %}
+    <div id="{{ task.id }}" class="govuk-summary-card govuk-!-margin-bottom-4">
+      <div class="govuk-summary-card__title-wrapper">
+        <h3 class="govuk-summary-card__title">{{ task.title }}</h3>
+        {% if task.link %}
+          <ul class="govuk-summary-card__actions">
+            <li class="govuk-summary-card__action">
+              <a class="govuk-link" href="{{ task.link }}" target="_blank" rel="noopener noreferrer">
+                {{ task.link_text }}
+              </a>
+            </li>
+          </ul>
+        {% endif %}
+      </div>
+      <div class="govuk-summary-card__content">
+        <dl class="govuk-summary-list">
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">Description</dt>
+            <dd class="govuk-summary-list__value">{{ task.description }}</dd>
+          </div>
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">Status</dt>
+            <dd id="{{ task.id }}-status-tag" class="govuk-summary-list__value">{{ status_tag(task) }}</dd>
+          </div>
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">Priority</dt>
+            <dd class="govuk-summary-list__value">{{ priority_tag(task.priority) }}</dd>
+          </div>
+        </dl>
+        {{ message_details(task) }}
+      </div>
+    </div>
+  {% endmacro %}
+
+  {# ── Core responsibilities ────────────────────────────────────────────────── #}
+  <h2 class="govuk-heading-l govuk-!-margin-top-6">Core checks</h2>
+  <p class="govuk-body">
+    These items must be monitored by the person on support every day.
+  </p>
+
+  {% for task in core_tasks %}
+    {{ task_card(task) }}
+  {% endfor %}
+
+  {# ── Optional responsibilities ────────────────────────────────────────────── #}
+  <h2 class="govuk-heading-l govuk-!-margin-top-8">Optional checks</h2>
+  <p class="govuk-body">
+    These items should be reviewed when capacity allows.
+  </p>
+
+  {% for task in optional_tasks %}
+    {{ task_card(task) }}
+  {% endfor %}
+
+{% endblock %}
+
+{% block bodyEnd %}
+  {{ super() }}
+  <script src="{{ url_for('static', filename='javascript/chart.umd-4.4.0.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='javascript/milk_monitor.js') }}" defer></script>
+{% endblock bodyEnd %}
