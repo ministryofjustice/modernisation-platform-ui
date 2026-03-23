@@ -218,7 +218,29 @@ Environments Summary {% endblock %} {% block content %}
 <!-- Chart.js Library -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
+<script id="env-type-counts-data" type="application/json">
+  {{ [env_type_counts.production, env_type_counts.preproduction, env_type_counts.test, env_type_counts.development] | tojson }}
+</script>
+<script id="account-type-labels-data" type="application/json">
+  {{ account_type_counts.keys() | list | tojson }}
+</script>
+<script id="account-type-values-data" type="application/json">
+  {{ account_type_counts.values() | list | tojson }}
+</script>
+<script id="business-unit-labels-data" type="application/json">
+  {{ business_unit_counts.keys() | list | tojson }}
+</script>
+<script id="business-unit-values-data" type="application/json">
+  {{ business_unit_counts.values() | list | tojson }}
+</script>
+
 <script>
+  const envTypeCounts = JSON.parse(document.getElementById('env-type-counts-data').textContent);
+  const accountTypeLabels = JSON.parse(document.getElementById('account-type-labels-data').textContent);
+  const accountTypeValues = JSON.parse(document.getElementById('account-type-values-data').textContent);
+  const businessUnitLabels = JSON.parse(document.getElementById('business-unit-labels-data').textContent);
+  const businessUnitValues = JSON.parse(document.getElementById('business-unit-values-data').textContent);
+
   // Environment Type Pie Chart
   const envTypeCtx = document.getElementById('envTypeChart').getContext('2d');
   new Chart(envTypeCtx, {
@@ -226,12 +248,7 @@ Environments Summary {% endblock %} {% block content %}
     data: {
       labels: ['Production', 'Pre-Production', 'Test', 'Development'],
       datasets: [{
-        data: [
-          {{ env_type_counts.production }},
-          {{ env_type_counts.preproduction }},
-          {{ env_type_counts.test }},
-          {{ env_type_counts.development }}
-        ],
+        data: envTypeCounts,
         backgroundColor: [
           '#d4351c', // GOV.UK red - Production
           '#f47738', // GOV.UK orange - Pre-Production
@@ -259,9 +276,9 @@ Environments Summary {% endblock %} {% block content %}
   new Chart(accountTypeCtx, {
     type: 'pie',
     data: {
-      labels: {{ account_type_counts.keys() | list | tojson }},
+      labels: accountTypeLabels,
       datasets: [{
-        data: {{ account_type_counts.values() | list | tojson }},
+        data: accountTypeValues,
         backgroundColor: [
           '#1d70b8', // GOV.UK blue
           '#d4351c', // GOV.UK red
@@ -293,10 +310,10 @@ Environments Summary {% endblock %} {% block content %}
   new Chart(businessUnitCtx, {
     type: 'bar',
     data: {
-      labels: {{ business_unit_counts.keys() | list | tojson }},
+      labels: businessUnitLabels,
       datasets: [{
         label: 'Number of Accounts',
-        data: {{ business_unit_counts.values() | list | tojson }},
+        data: businessUnitValues,
         backgroundColor: '#1d70b8', // GOV.UK blue
         borderColor: '#003078',
         borderWidth: 1
