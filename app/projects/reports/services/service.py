@@ -7,7 +7,7 @@ import re
 import requests
 import time
 
-from app.shared.services.github_app_auth_service import get_github_app_auth_headers
+from app.shared.services.github_app_auth_service import get_github_headers
 
 logger = logging.getLogger(__name__)
 
@@ -192,19 +192,14 @@ def extract_section(markdown_content, heading):
     
     return content if content else None
 
-def get_collaborators_data(org, repo, branch, app_client_id=None, app_private_key=None, app_installation_id=None):
+def get_collaborators_data(org, repo, branch):
     """
     Fetch collaborators.json file from a private repository using GitHub App authentication.
-    Returns the collaborators data with line numbers for each user.
     """
     path = "collaborators.json"
     
     try:
-        if app_client_id and app_private_key and app_installation_id:
-            headers = get_github_app_auth_headers(app_client_id, app_private_key, app_installation_id)
-        else:
-            logger.warning(f"GitHub App credentials missing - client_id: {bool(app_client_id)}, private_key: {bool(app_private_key)}, installation_id: {bool(app_installation_id)}")
-            headers = {}
+        headers = get_github_headers()
         
         # Use GitHub API to fetch file content from private repo
         api_url = f"https://api.github.com/repos/{org}/{repo}/contents/{path}?ref={branch}"

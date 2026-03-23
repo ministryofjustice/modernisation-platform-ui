@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 
 import requests
 
-from app.shared.config.app_config import app_config
+from app.shared.services.github_app_auth_service import get_github_headers
 
 logger = logging.getLogger(__name__)
 
@@ -21,17 +21,6 @@ EXCLUDED_TEAM_MEMBERS = frozenset(
 _team_members_cache: dict = {"members": [], "timestamp": None}
 
 
-def _get_github_headers() -> dict | None:
-    token = app_config.github.token
-    if not token:
-        logger.warning("ADMIN_GITHUB_TOKEN not configured")
-        return None
-    return {
-        "Authorization": f"token {token}",
-        "Accept": "application/vnd.github.v3+json",
-    }
-
-
 def get_team_members() -> list[str]:
     """Return active team members, excluding known departed members. Cached for 1 hour."""
     global _team_members_cache
@@ -41,7 +30,7 @@ def get_team_members() -> list[str]:
         if age < 3600:
             return _team_members_cache["members"]
 
-    headers = _get_github_headers()
+    headers = get_github_headers()
     if not headers:
         return []
 
@@ -68,7 +57,7 @@ def get_team_members() -> list[str]:
 
 def get_github_issue_count(label: str | None = None) -> int:
     """Return the count of open issues, optionally filtered by label."""
-    headers = _get_github_headers()
+    headers = get_github_headers()
     if not headers:
         return 0
 
@@ -98,7 +87,7 @@ def get_dependabot_prs() -> dict:
     from the Modernisation Platform team. Returns count and message list with
     CI check status for each PR.
     """
-    headers = _get_github_headers()
+    headers = get_github_headers()
     if not headers:
         return {"count": 0, "messages": []}
 
@@ -234,7 +223,7 @@ def get_all_workflow_failures(branch: str = "main") -> dict:
     Return workflows whose most recent run on the given branch failed within
     the last 24 hours.  Workflows where a subsequent run succeeded are excluded.
     """
-    headers = _get_github_headers()
+    headers = get_github_headers()
     if not headers:
         return {"count": 0, "failures": []}
 
