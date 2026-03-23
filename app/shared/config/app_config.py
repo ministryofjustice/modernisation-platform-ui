@@ -44,7 +44,5 @@ app_config = SimpleNamespace(
     slack=SimpleNamespace(
         bot_token=__get_env_var("SLACK_BOT_TOKEN"),
     ),
-    sentry=SimpleNamespace(
-        dsn_key=__get_env_var("SENTRY_DSN_KEY"), environment=__get_env_var("SENTRY_ENV")
-    ),
+    sentry=SimpleNamespace(dsn_key=__get_env_var("SENTRY_DSN_KEY"), environment=__get_env_var("SENTRY_ENV")),
 )

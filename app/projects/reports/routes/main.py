@@ -32,9 +32,7 @@ def sandbox_summary():
     for app in data:
         for env in app.get("environments", []):
             sandbox_groups = [
-                access.get("sso_group_name", "")
-                for access in env.get("access", [])
-                if access.get("level") == "sandbox"
+                access.get("sso_group_name", "") for access in env.get("access", []) if access.get("level") == "sandbox"
             ]
             if sandbox_groups:
                 key = (app["_filename"], env["name"])
@@ -95,19 +93,17 @@ def platform_access_summary():
 
                     # Generate link - Azure groups go to Azure portal, others to GitHub
                     if "azure" in sso_group.lower():
-                        group_url = "https://portal.azure.com/#view/Microsoft_AAD_IAM/GroupsManagementMenuBlade/~/AllGroups"
+                        group_url = (
+                            "https://portal.azure.com/#view/Microsoft_AAD_IAM/GroupsManagementMenuBlade/~/AllGroups"
+                        )
                     else:
                         group_url = f"https://github.com/orgs/ministryofjustice/teams/{sso_group}"
 
-                    app_access_map[app_name][key].append(
-                        {"group_name": sso_group, "group_url": group_url}
-                    )
+                    app_access_map[app_name][key].append({"group_name": sso_group, "group_url": group_url})
 
     # Define environment order for sorting
     def env_sort_key(item):
-        env_name = item[0][
-            0
-        ].lower()  # First element of tuple (environment, access_level)
+        env_name = item[0][0].lower()  # First element of tuple (environment, access_level)
         order = {
             "development": 0,
             "dev": 0,
@@ -127,9 +123,7 @@ def platform_access_summary():
     for app_name in sorted(app_access_map.keys()):
         if app_access_map[app_name]:  # Only include apps with access
             access_details = []
-            for (environment, access_level), groups in sorted(
-                app_access_map[app_name].items(), key=env_sort_key
-            ):
+            for (environment, access_level), groups in sorted(app_access_map[app_name].items(), key=env_sort_key):
                 access_details.append(
                     {
                         "environment": environment,
@@ -138,9 +132,7 @@ def platform_access_summary():
                     }
                 )
 
-            access_items.append(
-                {"app_name": app_name, "access_details": access_details}
-            )
+            access_items.append({"app_name": app_name, "access_details": access_details})
 
     # Sort role counts by count (descending) for better display
     role_counts = dict(sorted(role_counts.items(), key=lambda x: x[1], reverse=True))
@@ -187,25 +179,19 @@ def platform_contact_details():
     readme_org = "ministryofjustice"
     readme_repo = "modernisation-platform-environments"
     readme_branch = "main"
-    incident_info = get_readme_incident_info(
-        readme_org, readme_repo, readme_branch, app_names
-    )
+    incident_info = get_readme_incident_info(readme_org, readme_repo, readme_branch, app_names)
 
     # Add incident info to apps
     for app in apps:
         app_name = app["app_name"]
         if app_name in incident_info:
             app["incident_hours"] = incident_info[app_name].get("incident_hours", "N/A")
-            app["incident_contact"] = incident_info[app_name].get(
-                "incident_contact", "N/A"
-            )
+            app["incident_contact"] = incident_info[app_name].get("incident_contact", "N/A")
         else:
             app["incident_hours"] = "N/A"
             app["incident_contact"] = "N/A"
 
-    return render_template(
-        "projects/reports/pages/platform_contact_details.html", apps=apps
-    )
+    return render_template("projects/reports/pages/platform_contact_details.html", apps=apps)
 
 
 @reports_main.route("/collaborators-summary")
@@ -235,9 +221,7 @@ def collaborators_summary():
             access = account.get("access", "")
 
             if account_name:
-                env_role_pairs.append(
-                    {"environment": account_name, "role": access if access else "N/A"}
-                )
+                env_role_pairs.append({"environment": account_name, "role": access if access else "N/A"})
 
                 # Count environments
                 env_counts[account_name] = env_counts.get(account_name, 0) + 1
@@ -255,9 +239,7 @@ def collaborators_summary():
         )
 
     # Sort environment counts for pie chart
-    env_counts_sorted = dict(
-        sorted(env_counts.items(), key=lambda x: x[1], reverse=True)[:10]
-    )  # Top 10
+    env_counts_sorted = dict(sorted(env_counts.items(), key=lambda x: x[1], reverse=True)[:10])  # Top 10
 
     return render_template(
         "projects/reports/pages/collaborators_summary.html",
@@ -299,9 +281,7 @@ def platform_environments_summary():
         tags = app.get("tags", {})
         business_unit_raw = tags.get("business-unit", "Unknown")
         # Normalize business unit to uppercase to handle case inconsistencies
-        business_unit = (
-            business_unit_raw.upper() if business_unit_raw != "Unknown" else "Unknown"
-        )
+        business_unit = business_unit_raw.upper() if business_unit_raw != "Unknown" else "Unknown"
         is_cni = tags.get("critical-national-infrastructure", False)
         account_type = app.get("account-type", "Unknown")
 
@@ -311,9 +291,7 @@ def platform_environments_summary():
 
         # Count account types (per app, not per environment)
         if account_type:
-            account_type_counts[account_type] = (
-                account_type_counts.get(account_type, 0) + 1
-            )
+            account_type_counts[account_type] = account_type_counts.get(account_type, 0) + 1
 
         # Initialize app details if not exists
         if app_name not in app_details_map:
@@ -354,17 +332,13 @@ def platform_environments_summary():
                 app_details_map[app_name]["env_types"].append(env_type)
 
             # Count business units (count each environment for each app)
-            business_unit_counts[business_unit] = (
-                business_unit_counts.get(business_unit, 0) + 1
-            )
+            business_unit_counts[business_unit] = business_unit_counts.get(business_unit, 0) + 1
 
     # Convert map to list for template
     app_details = list(app_details_map.values())
 
     # Sort business units by count
-    business_unit_counts = dict(
-        sorted(business_unit_counts.items(), key=lambda x: x[1], reverse=True)
-    )
+    business_unit_counts = dict(sorted(business_unit_counts.items(), key=lambda x: x[1], reverse=True))
 
     return render_template(
         "projects/reports/pages/platform_environments_summary.html",

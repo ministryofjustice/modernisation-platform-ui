@@ -9,9 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class Auth0_Service:
-    def __init__(
-        self, app: Flask, client_id: str, client_secret: str, domain: str
-    ) -> None:
+    def __init__(self, app: Flask, client_id: str, client_secret: str, domain: str) -> None:
         self.client_id = client_id
         self.domain = domain
         self.oauth = OAuth(app)
@@ -26,9 +24,7 @@ class Auth0_Service:
         )
 
     def login(self, redirect_uri: str) -> Any:
-        return self.oauth.auth0.authorize_redirect(
-            redirect_uri=redirect_uri, _external=True
-        )
+        return self.oauth.auth0.authorize_redirect(redirect_uri=redirect_uri, _external=True)
 
     def get_access_token(self) -> Any:
         return self.oauth.auth0.authorize_access_token()

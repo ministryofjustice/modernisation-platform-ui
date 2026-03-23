@@ -65,9 +65,7 @@ def list_json_files(org, repo, directory):
 
 def fetch_json_file_with_filename(args):
     org, repo, branch, file_info = args
-    raw_url = RAW_URL_TEMPLATE.format(
-        org=org, repo=repo, branch=branch, path=file_info["path"]
-    )
+    raw_url = RAW_URL_TEMPLATE.format(org=org, repo=repo, branch=branch, path=file_info["path"])
 
     response = requests.get(raw_url)
     response.raise_for_status()
@@ -133,9 +131,7 @@ def fetch_readme_incident_info(args):
 
     for path in readme_paths:
         try:
-            raw_url = RAW_URL_TEMPLATE.format(
-                org=org, repo=repo, branch=branch, path=path
-            )
+            raw_url = RAW_URL_TEMPLATE.format(org=org, repo=repo, branch=branch, path=path)
             response = requests.get(raw_url, timeout=5)
 
             if response.status_code == 200:
@@ -212,9 +208,7 @@ def get_collaborators_data(org, repo, branch):
         headers = get_github_headers()
 
         # Use GitHub API to fetch file content from private repo
-        api_url = (
-            f"https://api.github.com/repos/{org}/{repo}/contents/{path}?ref={branch}"
-        )
+        api_url = f"https://api.github.com/repos/{org}/{repo}/contents/{path}?ref={branch}"
         response = requests.get(api_url, headers=headers, timeout=10)
         response.raise_for_status()
 

@@ -14,9 +14,7 @@ GITHUB_ORG = "ministryofjustice"
 GITHUB_REPO = "modernisation-platform"
 GITHUB_TEAM_SLUG = "modernisation-platform-engineers"
 
-EXCLUDED_TEAM_MEMBERS = frozenset(
-    ["dms1981", "davidkelliott", "modernisation-platform-ci"]
-)
+EXCLUDED_TEAM_MEMBERS = frozenset(["dms1981", "davidkelliott", "modernisation-platform-ci"])
 
 _team_members_cache: dict = {"members": [], "timestamp": None}
 
@@ -117,9 +115,7 @@ def get_dependabot_prs() -> dict:
         ]
 
         def _build_pr_message(pr: dict) -> dict:
-            repo_full_name = pr["repository_url"].replace(
-                "https://api.github.com/repos/", ""
-            )
+            repo_full_name = pr["repository_url"].replace("https://api.github.com/repos/", "")
             check_status = _get_pr_check_status(headers, repo_full_name, pr["number"])
             return {
                 "user": "Dependabot",
@@ -141,9 +137,7 @@ def get_dependabot_prs() -> dict:
                     messages.append(future.result())
                 except Exception as e:
                     pr = futures[future]
-                    logger.warning(
-                        f"Failed to fetch check status for PR #{pr['number']}: {e}"
-                    )
+                    logger.warning(f"Failed to fetch check status for PR #{pr['number']}: {e}")
 
         # Restore stable ordering (newest updated first)
         messages.sort(key=lambda m: m["timestamp"], reverse=True)
@@ -196,14 +190,10 @@ def _get_pr_check_status(headers: dict, repo_full_name: str, pr_number: int) -> 
         for run in check_runs:
             name = run.get("name")
             started = run.get("started_at", "")
-            if name not in latest_runs or started > latest_runs[name].get(
-                "started_at", ""
-            ):
+            if name not in latest_runs or started > latest_runs[name].get("started_at", ""):
                 latest_runs[name] = run
 
-        statuses = [
-            r.get("conclusion") or r.get("status") for r in latest_runs.values()
-        ]
+        statuses = [r.get("conclusion") or r.get("status") for r in latest_runs.values()]
         relevant = [s for s in statuses if s not in ("skipped", "neutral")]
 
         if not relevant:
@@ -256,9 +246,7 @@ def get_all_workflow_failures(branch: str = "main") -> dict:
 
         for runs in workflows.values():
             most_recent = runs[0]
-            run_time = datetime.strptime(
-                most_recent["created_at"], "%Y-%m-%dT%H:%M:%SZ"
-            )
+            run_time = datetime.strptime(most_recent["created_at"], "%Y-%m-%dT%H:%M:%SZ")
             if most_recent["conclusion"] == "failure" and run_time >= cutoff:
                 failures.append(
                     {
@@ -266,14 +254,11 @@ def get_all_workflow_failures(branch: str = "main") -> dict:
                         "run_id": most_recent["id"],
                         "run_number": most_recent["run_number"],
                         "title": (
-                            most_recent.get("display_title")
-                            or most_recent.get("head_commit", {}).get("message", "")
+                            most_recent.get("display_title") or most_recent.get("head_commit", {}).get("message", "")
                         ),
                         "created_at": most_recent["created_at"],
                         "link": most_recent["html_url"],
-                        "author": most_recent.get("head_commit", {})
-                        .get("author", {})
-                        .get("name", "Unknown"),
+                        "author": most_recent.get("head_commit", {}).get("author", {}).get("name", "Unknown"),
                     }
                 )
 

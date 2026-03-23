@@ -24,6 +24,4 @@ def configure_sentry(dsn_key: str, environment: str) -> None:
         )
         logger.info("Sentry configured successfully")
     else:
-        logger.warning(
-            "Sentry not configured due to either missing DSN Key or Environment"
-        )
+        logger.warning("Sentry not configured due to either missing DSN Key or Environment")

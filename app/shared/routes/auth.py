@@ -19,9 +19,7 @@ auth0_service = Auth0_Service(
 
 @auth_route.route("/login")
 def login():
-    return auth0_service.login(
-        url_for("auth_routes.callback", _external=True, _scheme="https")
-    )
+    return auth0_service.login(url_for("auth_routes.callback", _external=True, _scheme="https"))
 
 
 @auth_route.route("/logout", methods=["GET", "POST"])
