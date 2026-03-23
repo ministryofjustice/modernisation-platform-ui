@@ -114,7 +114,9 @@ def _format_slack_ts(ts: str | None) -> str:
     if not ts:
         return ""
     try:
-        return datetime.fromtimestamp(float(ts), tz=timezone.utc).strftime("%d %b %H:%M")
+        return datetime.fromtimestamp(float(ts), tz=timezone.utc).strftime(
+            "%d %b %H:%M"
+        )
     except (ValueError, TypeError):
         return ts
 
@@ -167,8 +169,12 @@ def _fetch_task_data(task: dict) -> dict:
             return {
                 **base,
                 "count": count,
-                "messages": _annotate_times(result.get("messages", []), _format_slack_ts),
-                "completed": _annotate_times(result.get("completed", []), _format_slack_ts),
+                "messages": _annotate_times(
+                    result.get("messages", []), _format_slack_ts
+                ),
+                "completed": _annotate_times(
+                    result.get("completed", []), _format_slack_ts
+                ),
                 "status": "requires_attention" if count > 0 else "ok",
             }
 
@@ -178,8 +184,12 @@ def _fetch_task_data(task: dict) -> dict:
             return {
                 **base,
                 "count": count,
-                "messages": _annotate_times(result.get("messages", []), _format_slack_ts),
-                "completed": _annotate_times(result.get("completed", []), _format_slack_ts),
+                "messages": _annotate_times(
+                    result.get("messages", []), _format_slack_ts
+                ),
+                "completed": _annotate_times(
+                    result.get("completed", []), _format_slack_ts
+                ),
                 "status": "requires_attention" if count > 0 else "ok",
             }
 
@@ -189,13 +199,19 @@ def _fetch_task_data(task: dict) -> dict:
             return {
                 **base,
                 "count": count,
-                "messages": _annotate_times(result.get("messages", []), _format_slack_ts),
-                "completed": _annotate_times(result.get("completed", []), _format_slack_ts),
+                "messages": _annotate_times(
+                    result.get("messages", []), _format_slack_ts
+                ),
+                "completed": _annotate_times(
+                    result.get("completed", []), _format_slack_ts
+                ),
                 "status": "requires_attention" if count > 0 else "ok",
             }
 
         if task_type == "github_all_workflows":
-            result = github_service.get_all_workflow_failures(task.get("branch", "main"))
+            result = github_service.get_all_workflow_failures(
+                task.get("branch", "main")
+            )
             count = result["count"]
             messages = [
                 {
@@ -262,7 +278,9 @@ def milk_monitor_dashboard():
     total_count = 0
 
     with ThreadPoolExecutor(max_workers=8) as executor:
-        future_map = {executor.submit(_fetch_task_data, t): (group, t) for group, t in all_tasks}
+        future_map = {
+            executor.submit(_fetch_task_data, t): (group, t) for group, t in all_tasks
+        }
         for future in as_completed(future_map):
             group, task = future_map[future]
             try:
@@ -283,9 +301,11 @@ def milk_monitor_dashboard():
 
     all_results = core_tasks + optional_tasks
     status_counts = {
-        "red":   sum(1 for t in all_results if t["status"] == "requires_attention"),
+        "red": sum(1 for t in all_results if t["status"] == "requires_attention"),
         "green": sum(1 for t in all_results if t["status"] == "ok"),
-        "amber": sum(1 for t in all_results if t["status"] not in ("requires_attention", "ok")),
+        "amber": sum(
+            1 for t in all_results if t["status"] not in ("requires_attention", "ok")
+        ),
     }
 
     return render_template(
@@ -321,27 +341,33 @@ def milk_monitor_data():
             try:
                 result = future.result()
                 total_count += result.get("count", 0)
-                results.append({
-                    "id": result["id"],
-                    "type": result.get("type", ""),
-                    "table_type": result.get("table_type", "manual"),
-                    "status": result["status"],
-                    "count": result["count"],
-                    "messages": _strip_full_text(result.get("messages", [])),
-                    "completed": _strip_full_text(result.get("completed", [])),
-                })
+                results.append(
+                    {
+                        "id": result["id"],
+                        "type": result.get("type", ""),
+                        "table_type": result.get("table_type", "manual"),
+                        "status": result["status"],
+                        "count": result["count"],
+                        "messages": _strip_full_text(result.get("messages", [])),
+                        "completed": _strip_full_text(result.get("completed", [])),
+                    }
+                )
             except Exception as e:
                 logger.error(f"Data endpoint: task {task['id']} failed: {e}")
 
     status_counts = {
-        "red":   sum(1 for r in results if r["status"] == "requires_attention"),
+        "red": sum(1 for r in results if r["status"] == "requires_attention"),
         "green": sum(1 for r in results if r["status"] == "ok"),
-        "amber": sum(1 for r in results if r["status"] not in ("requires_attention", "ok")),
+        "amber": sum(
+            1 for r in results if r["status"] not in ("requires_attention", "ok")
+        ),
     }
 
-    return jsonify({
-        "total_count": total_count,
-        "status_counts": status_counts,
-        "tasks": results,
-        "fetched_at": datetime.now(tz=timezone.utc).strftime("%H:%M UTC"),
-    })
+    return jsonify(
+        {
+            "total_count": total_count,
+            "status_counts": status_counts,
+            "tasks": results,
+            "fetched_at": datetime.now(tz=timezone.utc).strftime("%H:%M UTC"),
+        }
+    )

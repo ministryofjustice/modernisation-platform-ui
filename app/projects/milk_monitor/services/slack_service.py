@@ -222,9 +222,12 @@ def get_slack_channel_data(channel_name: str) -> dict:
                 continue
 
             # Special case: allow PagerDuty alerts in the sec-hub channel
-            is_pagerduty_sechub = channel_name == "modernisation-platform-sec-hub-high-alerts" and (
-                "pagerduty" in bot_username
-                or "pagerduty" in msg.get("text", "").lower()[:100]
+            is_pagerduty_sechub = (
+                channel_name == "modernisation-platform-sec-hub-high-alerts"
+                and (
+                    "pagerduty" in bot_username
+                    or "pagerduty" in msg.get("text", "").lower()[:100]
+                )
             )
             if (subtype == "bot_message" or bot_id) and not is_pagerduty_sechub:
                 continue
@@ -245,9 +248,12 @@ def get_slack_channel_data(channel_name: str) -> dict:
                 continue
 
             reactions = msg.get("reactions", [])
-            has_approved = any(r.get("name", "").startswith("approved") for r in reactions)
+            has_approved = any(
+                r.get("name", "").startswith("approved") for r in reactions
+            )
             has_completion = (
-                any(r.get("name") in COMPLETION_EMOJIS for r in reactions) or has_approved
+                any(r.get("name") in COMPLETION_EMOJIS for r in reactions)
+                or has_approved
             )
 
             completed_by = None
@@ -297,10 +303,16 @@ def get_slack_channel_data(channel_name: str) -> dict:
         logger.info(
             f"#{channel_name}: {len(unresolved)} unresolved, {len(completed)} completed"
         )
-        return {"count": len(unresolved), "messages": unresolved, "completed": completed}
+        return {
+            "count": len(unresolved),
+            "messages": unresolved,
+            "completed": completed,
+        }
 
     except Exception as e:
-        logger.error(f"Error fetching Slack channel data for #{channel_name}: {e}", exc_info=True)
+        logger.error(
+            f"Error fetching Slack channel data for #{channel_name}: {e}", exc_info=True
+        )
         return {"count": 0, "messages": [], "completed": []}
 
 
@@ -357,18 +369,23 @@ def get_daniel_spaniel_messages(channel_name: str) -> dict:
             username = msg.get("username", "").lower()
             text_lower = msg.get("text", "").lower()
 
-            is_daniel = any(name in username for name in daniel_names) or any(
-                name in text_lower for name in daniel_names
-            ) or ("paw_prints" in text_lower and "friendly manual" in text_lower)
+            is_daniel = (
+                any(name in username for name in daniel_names)
+                or any(name in text_lower for name in daniel_names)
+                or ("paw_prints" in text_lower and "friendly manual" in text_lower)
+            )
 
             if is_daniel or (bot_id and "daniel" in username):
                 full_text = msg.get("text", "")
                 ts = msg.get("ts", "").replace(".", "")
 
                 reactions = msg.get("reactions", [])
-                has_approved = any(r.get("name", "").startswith("approved") for r in reactions)
+                has_approved = any(
+                    r.get("name", "").startswith("approved") for r in reactions
+                )
                 has_completion = (
-                    any(r.get("name") in COMPLETION_EMOJIS for r in reactions) or has_approved
+                    any(r.get("name") in COMPLETION_EMOJIS for r in reactions)
+                    or has_approved
                 )
 
                 completed_by = None
@@ -396,7 +413,9 @@ def get_daniel_spaniel_messages(channel_name: str) -> dict:
                 else:
                     messages.append(message_data)
 
-        logger.info(f"#{channel_name}: {len(messages)} active, {len(completed)} completed Daniel the Spaniel messages")
+        logger.info(
+            f"#{channel_name}: {len(messages)} active, {len(completed)} completed Daniel the Spaniel messages"
+        )
         return {"count": len(messages), "messages": messages, "completed": completed}
 
     except Exception as e:
@@ -446,7 +465,8 @@ def get_slack_pr_links(channel_name: str) -> dict:
 
             reactions = msg.get("reactions", [])
             is_completed = any(
-                r.get("name") in PR_COMPLETION_EMOJIS or r.get("name", "").startswith("approved")
+                r.get("name") in PR_COMPLETION_EMOJIS
+                or r.get("name", "").startswith("approved")
                 for r in reactions
             )
 
@@ -494,8 +514,14 @@ def get_slack_pr_links(channel_name: str) -> dict:
         pr_messages.sort(key=lambda m: float(m.get("timestamp") or 0), reverse=True)
         completed.sort(key=lambda m: float(m.get("timestamp") or 0), reverse=True)
 
-        logger.info(f"#{channel_name}: {len(pr_messages)} unresolved PR links, {len(completed)} completed")
-        return {"count": len(pr_messages), "messages": pr_messages, "completed": completed}
+        logger.info(
+            f"#{channel_name}: {len(pr_messages)} unresolved PR links, {len(completed)} completed"
+        )
+        return {
+            "count": len(pr_messages),
+            "messages": pr_messages,
+            "completed": completed,
+        }
 
     except Exception as e:
         logger.error(

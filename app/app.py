@@ -23,7 +23,6 @@ def create_app(is_rate_limit_enabled=True) -> Flask:
 
     app.secret_key = app_config.flask.app_secret_key
 
-
     configure_routes(app)
     configure_error_handlers(app)
     configure_limiter(app, is_rate_limit_enabled)

@@ -110,7 +110,8 @@ def get_dependabot_prs() -> dict:
             return {"count": 0, "messages": []}
 
         prs = [
-            pr for pr in response.json().get("items", [])
+            pr
+            for pr in response.json().get("items", [])
             if pr["repository_url"].replace("https://api.github.com/repos/", "")
             != "ministryofjustice/modernisation-platform-environments"
         ]
@@ -140,7 +141,9 @@ def get_dependabot_prs() -> dict:
                     messages.append(future.result())
                 except Exception as e:
                     pr = futures[future]
-                    logger.warning(f"Failed to fetch check status for PR #{pr['number']}: {e}")
+                    logger.warning(
+                        f"Failed to fetch check status for PR #{pr['number']}: {e}"
+                    )
 
         # Restore stable ordering (newest updated first)
         messages.sort(key=lambda m: m["timestamp"], reverse=True)
@@ -193,7 +196,9 @@ def _get_pr_check_status(headers: dict, repo_full_name: str, pr_number: int) -> 
         for run in check_runs:
             name = run.get("name")
             started = run.get("started_at", "")
-            if name not in latest_runs or started > latest_runs[name].get("started_at", ""):
+            if name not in latest_runs or started > latest_runs[name].get(
+                "started_at", ""
+            ):
                 latest_runs[name] = run
 
         statuses = [
@@ -251,7 +256,9 @@ def get_all_workflow_failures(branch: str = "main") -> dict:
 
         for runs in workflows.values():
             most_recent = runs[0]
-            run_time = datetime.strptime(most_recent["created_at"], "%Y-%m-%dT%H:%M:%SZ")
+            run_time = datetime.strptime(
+                most_recent["created_at"], "%Y-%m-%dT%H:%M:%SZ"
+            )
             if most_recent["conclusion"] == "failure" and run_time >= cutoff:
                 failures.append(
                     {

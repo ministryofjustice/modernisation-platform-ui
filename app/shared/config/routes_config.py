@@ -19,6 +19,4 @@ def configure_routes(app: Flask) -> None:
         aws_account_standards_main, url_prefix="/aws-account-standards"
     )
 
-    app.register_blueprint(
-        milk_monitor_main, url_prefix="/milk-monitor"
-    )
+    app.register_blueprint(milk_monitor_main, url_prefix="/milk-monitor")
