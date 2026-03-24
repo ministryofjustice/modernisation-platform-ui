@@ -195,7 +195,7 @@ Environments Summary {% endblock %} {% block content %}
             class="govuk-table__row"
             data-app="{{ detail.app_name }}"
             data-env-types="{{ detail.env_types|join(' ') }}"
-            data-bu="{{ detail.business_unit }}"
+            data-business-unit="{{ detail.business_unit }}"
             data-account-type="{{ detail.account_type }}"
             data-cni="{{ detail.is_cni }}"
           >
@@ -347,7 +347,7 @@ Environments Summary {% endblock %} {% block content %}
       const appName = row.dataset.app.toLowerCase();
       const envTypesRaw = row.dataset.envTypes; // Keep original case for display
       const envTypes = envTypesRaw.toLowerCase().split(' ');
-      const businessUnit = row.dataset.bu.toLowerCase();
+      const businessUnit = row.dataset.businessUnit.toLowerCase();
       const accountType = row.dataset.accountType.toLowerCase();
       const cni = row.dataset.cni.toLowerCase();
 
