@@ -270,8 +270,9 @@ def get_slack_channel_data(channel_name: str) -> dict:
                         # Skip other PagerDuty messages (acknowledged, note added, etc.)
                         continue
 
-                elif subtype == "bot_message" or bot_id:
-                    # Filter other bot messages
+                else:
+                    # Skip all non-PagerDuty messages in PagerDuty alert channels
+                    # (human posts, other bots, etc.)
                     continue
             else:
                 # Non-PagerDuty channels: filter bot messages as before

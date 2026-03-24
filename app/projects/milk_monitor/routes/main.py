@@ -99,7 +99,11 @@ OPTIONAL_RESPONSIBILITIES = [
         "description": "Check if issues meet the Definition of Done before moving them to Done.",
         "priority": "medium",
         "type": "github_issues",
-        "label": "for-review",
+        "project_org": "ministryofjustice",
+        "project_number": 17,
+        "status_field": "Status",
+        "status_value": "For Review",
+        "current_sprint_only": True,
         "link": (
             "https://github.com/orgs/ministryofjustice/projects/17/views/4"
             "?filterQuery=sprint%3A%40current+-status%3A%22Done+in+Sprint%22+status%3A%22For+Review%22"
@@ -229,11 +233,32 @@ def _fetch_task_data(task: dict) -> dict:
             }
 
         if task_type == "github_issues":
-            count = github_service.get_github_issue_count(task.get("label"))
+            project_state = github_service.get_project_for_review_count(
+                org=task.get("project_org", GITHUB_ORG),
+                project_number=task.get("project_number", 17),
+                status_field_name=task.get("status_field", "Status"),
+                status_value=task.get("status_value", "For Review"),
+                current_sprint_only=task.get("current_sprint_only", False),
+            )
+            count = project_state.get("count", 0)
+            items = project_state.get("items", [])
+            messages = [
+                {
+                    "user": item.get("repo", ""),
+                    "user_id": "github",
+                    "text": f"#{item.get('number')} {item.get('title', 'Untitled issue')}",
+                    "timestamp": item.get("updated_at"),
+                    "time": _format_github_ts(item.get("updated_at")),
+                    "link": item.get("url"),
+                }
+                for item in items
+            ]
             return {
                 **base,
                 "count": count,
-                "messages": [],
+                "messages": messages,
+                "item_ids": project_state.get("item_ids", []),
+                "items": items,
                 "status": "requires_attention" if count > 0 else "ok",
             }
 
@@ -321,6 +346,7 @@ def milk_monitor_data():
             try:
                 result = future.result()
                 total_count += result.get("count", 0)
+
                 results.append({
                     "id": result["id"],
                     "type": result.get("type", ""),

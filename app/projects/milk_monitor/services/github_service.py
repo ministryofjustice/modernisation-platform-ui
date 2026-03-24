@@ -13,12 +13,259 @@ GITHUB_API_BASE = "https://api.github.com"
 GITHUB_ORG = "ministryofjustice"
 GITHUB_REPO = "modernisation-platform"
 GITHUB_TEAM_SLUG = "modernisation-platform-engineers"
+PROJECT_FOR_REVIEW_ORG = "ministryofjustice"
+PROJECT_FOR_REVIEW_NUMBER = 17
+PROJECT_STATUS_FIELD_NAME = "Status"
+PROJECT_FOR_REVIEW_VALUE = "For Review"
 
 EXCLUDED_TEAM_MEMBERS = frozenset(
     ["dms1981", "davidkelliott", "modernisation-platform-ci"]
 )
 
 _team_members_cache: dict = {"members": [], "timestamp": None}
+_project_review_transition_cache: dict = {
+    "item_ids": set(),
+    "initialized": False,
+    "timestamp": None,
+}
+
+
+def _normalize_status_value(value: str | None) -> str:
+    """Normalize project status values for robust comparisons."""
+    if not value:
+        return ""
+    return " ".join(value.strip().lower().split())
+
+
+def _is_current_iteration(start_date: str | None, duration_days: int | None) -> bool:
+    """Return True when an iteration window contains today's UTC date."""
+    if not start_date or not duration_days:
+        return False
+
+    try:
+        start = datetime.strptime(start_date, "%Y-%m-%d").date()
+    except ValueError:
+        return False
+
+    today = datetime.utcnow().date()
+    delta_days = (today - start).days
+    return 0 <= delta_days < int(duration_days)
+
+
+def _fetch_project_for_review_items(
+    org: str = PROJECT_FOR_REVIEW_ORG,
+    project_number: int = PROJECT_FOR_REVIEW_NUMBER,
+    status_field_name: str = PROJECT_STATUS_FIELD_NAME,
+    status_value: str = PROJECT_FOR_REVIEW_VALUE,
+    current_sprint_only: bool = False,
+) -> dict:
+    """Return project items currently in the configured For Review status."""
+    headers = get_github_headers()
+    if not headers:
+        return {"count": 0, "item_ids": [], "items": []}
+
+    headers = {
+        **headers,
+        "Accept": "application/vnd.github+json",
+    }
+
+    query = """
+    query($org: String!, $number: Int!, $cursor: String) {
+      organization(login: $org) {
+        projectV2(number: $number) {
+          items(first: 100, after: $cursor) {
+            pageInfo {
+              hasNextPage
+              endCursor
+            }
+            nodes {
+              id
+              content {
+                ... on Issue {
+                  title
+                  url
+                  number
+                                    updatedAt
+                  repository {
+                    nameWithOwner
+                  }
+                }
+              }
+              fieldValues(first: 20) {
+                nodes {
+                  ... on ProjectV2ItemFieldSingleSelectValue {
+                    name
+                    field {
+                      ... on ProjectV2SingleSelectField {
+                        name
+                      }
+                    }
+                  }
+                                    ... on ProjectV2ItemFieldIterationValue {
+                                        title
+                                        startDate
+                                        duration
+                                    }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    """
+
+    review_items: list[dict] = []
+    review_item_ids: list[str] = []
+    cursor = None
+    target_status = _normalize_status_value(status_value)
+    target_field = _normalize_status_value(status_field_name)
+
+    try:
+        while True:
+            response = requests.post(
+                f"{GITHUB_API_BASE}/graphql",
+                headers=headers,
+                json={
+                    "query": query,
+                    "variables": {
+                        "org": org,
+                        "number": project_number,
+                        "cursor": cursor,
+                    },
+                },
+                timeout=15,
+            )
+
+            if response.status_code != 200:
+                logger.error(
+                    "Failed to fetch project items: status=%s project=%s/%s",
+                    response.status_code,
+                    org,
+                    project_number,
+                )
+                return {"count": 0, "item_ids": [], "items": []}
+
+            payload = response.json()
+            if payload.get("errors"):
+                logger.error("GraphQL errors fetching project items: %s", payload["errors"])
+                return {"count": 0, "item_ids": [], "items": []}
+
+            project = payload.get("data", {}).get("organization", {}).get("projectV2")
+            if not project:
+                logger.warning("Project not found for %s/%s", org, project_number)
+                return {"count": 0, "item_ids": [], "items": []}
+
+            items_conn = project.get("items", {})
+            nodes = items_conn.get("nodes", [])
+
+            for node in nodes:
+                item_id = node.get("id")
+                content = node.get("content") or {}
+                if not item_id or not content:
+                    continue
+
+                current_status = None
+                in_current_iteration = False
+                for fv in (node.get("fieldValues") or {}).get("nodes", []):
+                    if _is_current_iteration(fv.get("startDate"), fv.get("duration")):
+                        in_current_iteration = True
+
+                    field_name = _normalize_status_value(
+                        (fv.get("field") or {}).get("name")
+                    )
+                    if field_name == target_field:
+                        current_status = _normalize_status_value(fv.get("name"))
+
+                if current_sprint_only and not in_current_iteration:
+                    continue
+
+                if current_status != target_status:
+                    continue
+
+                review_item_ids.append(item_id)
+                review_items.append(
+                    {
+                        "item_id": item_id,
+                        "title": content.get("title", "Untitled issue"),
+                        "url": content.get("url"),
+                        "number": content.get("number"),
+                        "updated_at": content.get("updatedAt"),
+                        "repo": (content.get("repository") or {}).get("nameWithOwner", ""),
+                    }
+                )
+
+            page_info = items_conn.get("pageInfo", {})
+            if not page_info.get("hasNextPage"):
+                break
+            cursor = page_info.get("endCursor")
+            if not cursor:
+                break
+
+        return {
+            "count": len(review_item_ids),
+            "item_ids": review_item_ids,
+            "items": review_items,
+        }
+
+    except Exception as e:
+        logger.error(f"Error fetching project For Review items: {e}", exc_info=True)
+        return {"count": 0, "item_ids": [], "items": []}
+
+
+def get_project_for_review_count(
+    org: str = PROJECT_FOR_REVIEW_ORG,
+    project_number: int = PROJECT_FOR_REVIEW_NUMBER,
+    status_field_name: str = PROJECT_STATUS_FIELD_NAME,
+    status_value: str = PROJECT_FOR_REVIEW_VALUE,
+    current_sprint_only: bool = False,
+) -> dict:
+    """Return count and IDs for issues currently in For Review on a GitHub Project V2 board."""
+    return _fetch_project_for_review_items(
+        org=org,
+        project_number=project_number,
+        status_field_name=status_field_name,
+        status_value=status_value,
+        current_sprint_only=current_sprint_only,
+    )
+
+
+def detect_project_review_transitions(
+    current_item_ids: list[str],
+    current_items: list[dict] | None = None,
+) -> dict:
+    """Compare with previous poll and return newly-moved project items in For Review."""
+    global _project_review_transition_cache
+
+    if current_items is None:
+        current_items = []
+
+    current_set = set(current_item_ids)
+    previous_set: set[str] = _project_review_transition_cache["item_ids"]
+    initialized = _project_review_transition_cache["initialized"]
+
+    if not initialized:
+        newly_moved_ids = set(current_set)
+    else:
+        newly_moved_ids = current_set - previous_set
+
+    newly_moved_items = [
+        item
+        for item in current_items
+        if item.get("item_id") in newly_moved_ids
+    ]
+
+    _project_review_transition_cache = {
+        "item_ids": current_set,
+        "initialized": True,
+        "timestamp": datetime.utcnow(),
+    }
+
+    return {
+        "new_count": len(newly_moved_ids),
+        "new_items": newly_moved_items,
+        "current_count": len(current_set),
+    }
 
 
 def get_team_members() -> list[str]:
