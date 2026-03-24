@@ -160,13 +160,33 @@ def get_slack_user_name(user_id: str) -> str:
     return user_id
 
 
+def _extract_pagerduty_incident_id(text: str) -> str | None:
+    """Extract PagerDuty incident ID from message URL."""
+    if not text:
+        return None
+    match = re.search(r'incidents/([A-Z0-9]+)', text)
+    return match.group(1) if match else None
+
+
+def _is_pagerduty_initial_alert(text: str) -> bool:
+    """Check if this is the initial triggered alert (has urgency level)."""
+    text_lower = text.lower()
+    return "urgency:" in text_lower
+
+
+def _is_pagerduty_closed_alert(text: str) -> bool:
+    """Check if the initial PagerDuty alert has transitioned to a closed state."""
+    text_lower = text.lower()
+    return any(marker in text_lower for marker in (":green_circle:", ":large_green_circle:", "🟢"))
+
 def get_slack_channel_data(channel_name: str) -> dict:
     """
     Return unresolved and completed messages from a Slack channel with activity
     in the past 25 hours.
 
-    A message is considered resolved when it has a completion emoji reaction
-    (e.g. ✅).  The 👀 reaction indicates acknowledgement without resolution.
+    For PagerDuty alert channels, only initial incident posts are considered.
+    Follow-up status posts are ignored and closure is inferred from the
+    initial post state (green indicator means closed).
     """
     headers = _get_auth_headers()
     if not headers:
@@ -210,6 +230,13 @@ def get_slack_channel_data(channel_name: str) -> dict:
 
         logger.info(f"Fetched {len(all_messages)} messages from #{channel_name}")
 
+        # Check if this is a PagerDuty alert channel
+        is_pagerduty_channel = channel_name in [
+            "modernisation-platform-sec-hub-high-alerts",
+            "modernisation-platform-high-priority-alarms",
+        ]
+
+        seen_incidents: set[str] = set()
         unresolved: list[dict] = []
         completed: list[dict] = []
 
@@ -217,17 +244,39 @@ def get_slack_channel_data(channel_name: str) -> dict:
             subtype = msg.get("subtype", "")
             bot_id = msg.get("bot_id", "")
             bot_username = msg.get("username", "").lower()
+            text = msg.get("text", "")
 
             if subtype in ("channel_join", "channel_leave"):
                 continue
 
-            # Special case: allow PagerDuty alerts in the sec-hub channel
-            is_pagerduty_sechub = channel_name == "modernisation-platform-sec-hub-high-alerts" and (
-                "pagerduty" in bot_username
-                or "pagerduty" in msg.get("text", "").lower()[:100]
-            )
-            if (subtype == "bot_message" or bot_id) and not is_pagerduty_sechub:
-                continue
+            # PagerDuty-specific logic for alert channels
+            if is_pagerduty_channel:
+                is_pagerduty = (
+                    "pagerduty" in bot_username
+                    or "pagerduty" in text.lower()[:100]
+                )
+
+                if is_pagerduty:
+                    incident_id = _extract_pagerduty_incident_id(text)
+
+                    # Handle initial alert messages
+                    if _is_pagerduty_initial_alert(text):
+                        # Only include the first occurrence of each incident
+                        if incident_id and incident_id in seen_incidents:
+                            continue
+                        if incident_id:
+                            seen_incidents.add(incident_id)
+                    else:
+                        # Skip other PagerDuty messages (acknowledged, note added, etc.)
+                        continue
+
+                elif subtype == "bot_message" or bot_id:
+                    # Filter other bot messages
+                    continue
+            else:
+                # Non-PagerDuty channels: filter bot messages as before
+                if (subtype == "bot_message" or bot_id):
+                    continue
 
             # Skip thread replies (only show parent messages)
             if msg.get("thread_ts") and msg.get("thread_ts") != msg.get("ts"):
@@ -250,6 +299,10 @@ def get_slack_channel_data(channel_name: str) -> dict:
                 any(r.get("name") in COMPLETION_EMOJIS for r in reactions) or has_approved
             )
 
+            if is_pagerduty_channel:
+                if _is_pagerduty_initial_alert(text) and _is_pagerduty_closed_alert(text):
+                    has_completion = True
+
             completed_by = None
             acknowledged_by = None
 
@@ -271,15 +324,15 @@ def get_slack_channel_data(channel_name: str) -> dict:
 
             user_id = msg.get("user", "Unknown")
             user_name = get_slack_user_name(user_id)
-            text = convert_slack_emojis(msg.get("text", ""))
+            text_converted = convert_slack_emojis(text)
             ts_clean = msg.get("ts", "").replace(".", "")
             link = f"https://mojdt.slack.com/archives/{channel_id}/p{ts_clean}"
 
             message_data: dict = {
                 "user": user_name,
                 "user_id": user_id,
-                "text": text[:200] + ("..." if len(text) > 200 else ""),
-                "full_text": text,
+                "text": text_converted[:200] + ("..." if len(text_converted) > 200 else ""),
+                "full_text": text_converted,
                 "timestamp": msg.get("ts"),
                 "link": link,
             }
