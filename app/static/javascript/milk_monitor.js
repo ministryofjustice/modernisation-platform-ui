@@ -126,11 +126,11 @@
   }
 
   function tableWrap(headers, bodyRows) {
-    var ths = headers.map(function (h) {
+    var thCells = headers.map(function (h) {
       return '<th scope="col" class="govuk-table__header">' + esc(h) + '</th>';
     }).join('');
     return '<table class="govuk-table govuk-!-margin-bottom-0">' +
-      '<thead class="govuk-table__head"><tr class="govuk-table__row">' + ths + '</tr></thead>' +
+      '<thead class="govuk-table__head"><tr class="govuk-table__row">' + thCells + '</tr></thead>' +
       '<tbody class="govuk-table__body">' + bodyRows + '</tbody></table>';
   }
 
