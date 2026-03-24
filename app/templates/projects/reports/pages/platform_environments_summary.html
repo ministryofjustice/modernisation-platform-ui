@@ -347,7 +347,7 @@ Environments Summary {% endblock %} {% block content %}
       const appName = row.dataset.app.toLowerCase();
       const envTypesRaw = row.dataset.envTypes; // Keep original case for display
       const envTypes = envTypesRaw.toLowerCase().split(' ');
-      const bu = row.dataset.bu.toLowerCase();
+      const businessUnit = row.dataset.bu.toLowerCase();
       const accountType = row.dataset.accountType.toLowerCase();
       const cni = row.dataset.cni.toLowerCase();
 
@@ -390,7 +390,7 @@ Environments Summary {% endblock %} {% block content %}
       });
 
       // Check if row matches all terms
-      const rowText = `${appName} ${envTypesRaw.toLowerCase()} ${bu} ${accountType} ${cni}`;
+      const rowText = `${appName} ${envTypesRaw.toLowerCase()} ${businessUnit} ${accountType} ${cni}`;
       const matches = searchTerms.every(term => rowText.includes(term));
 
       if (matches) {
