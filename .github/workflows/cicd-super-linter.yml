@@ -19,6 +19,7 @@ jobs:
     with:
       super-linter-variables: |
         {
+          "FILTER_REGEX_EXCLUDE": "(app/static/javascript/(chart\\.umd-4\\.4\\.0\\.min\\.js|govuk-frontend-5\\.1\\.0\\.min\\.js|govuk-frontend-5\\.9\\.0\\.min\\.js|moj-frontend\\.min\\.js)|helm/modernisation-platform-ui/templates/)",
           "VALIDATE_CSS": false,
           "VALIDATE_CSS_PRETTIER": false,
           "VALIDATE_EDITORCONFIG": false,
@@ -35,5 +36,6 @@ jobs:
           "VALIDATE_PYTHON_ISORT": false,
           "VALIDATE_PYTHON_MYPY": false,
           "VALIDATE_PYTHON_RUFF": false,
-          "VALIDATE_YAML": false
+          "VALIDATE_YAML": false,
+          "FIX_PYTHON_RUFF_FORMAT": true
         }
