@@ -3,7 +3,6 @@ from flask import Blueprint, render_template, jsonify
 from app.projects.reports.services.service import get_all_json_data, get_readme_incident_info, get_collaborators_data
 
 from app.shared.middleware.auth import requires_auth
-from app.shared.config.app_config import app_config
 
 logger = logging.getLogger(__name__)
 
@@ -188,10 +187,7 @@ def collaborators_summary():
     data = get_collaborators_data(
         org, 
         repo, 
-        branch,
-        app_client_id=app_config.github.app.client_id,
-        app_private_key=app_config.github.app.private_key,
-        app_installation_id=app_config.github.app.installation_id
+        branch
     )
     users = data.get("users", [])
     

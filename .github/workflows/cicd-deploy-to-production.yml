@@ -28,6 +28,7 @@ env:
   GITHUB_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY }}
   GITHUB_APP_INSTALLATION_ID: ${{ vars.GH_APP_INSTALLATION_ID }}
   SENTRY_DSN_KEY: ${{ secrets.SENTRY_DSN_KEY }}
+  SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
 jobs:
   build-push-image:
@@ -59,7 +60,7 @@ jobs:
 
       - name: Build and Push
         id: build_and_push
-        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
         with:
           push: true
           tags: ${{ steps.ecr_login.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
@@ -101,10 +102,10 @@ jobs:
             --set app.deployment.env.AUTH0_CLIENT_ID="${AUTH0_CLIENT_ID}" \
             --set app.deployment.env.AUTH0_CLIENT_SECRET="${AUTH0_CLIENT_SECRET}" \
             --set app.deployment.env.APP_SECRET_KEY="${FLASK_APP_SECRET}" \
-            --set app.deployment.env.ADMIN_GITHUB_TOKEN="${ADMIN_GITHUB_TOKEN}" \
             --set app.deployment.env.GITHUB_APP_CLIENT_ID="${GITHUB_APP_CLIENT_ID}" \
             --set app.deployment.env.GITHUB_APP_PRIVATE_KEY="${GITHUB_APP_PRIVATE_KEY}" \
             --set app.deployment.env.GITHUB_APP_INSTALLATION_ID="${GITHUB_APP_INSTALLATION_ID}" \
             --set app.deployment.env.SENTRY_DSN_KEY="${SENTRY_DSN_KEY}" \
             --set app.deployment.image.repository="${ECR_REGISTRY}/${ECR_REPOSITORY}" \
-            --set app.deployment.image.tag="${IMAGE_TAG}"
+            --set app.deployment.image.tag="${IMAGE_TAG}" \
+            --set app.deployment.env.SLACK_BOT_TOKEN="${SLACK_BOT_TOKEN}"
