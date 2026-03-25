@@ -206,7 +206,10 @@ service – your
   >feedback</a
 >
 will help us to improve it.' }) }} {% endif %} {% endblock %} {% block pageTitle
-%} Modernisation Platform {% endblock %} {% block bodyEnd %}
+%} Modernisation Platform {% endblock %} {% block footer %}
+{{ govukFooter({}) }}
+{% endblock %} {% block bodyEnd %}
+
 <!-- GovUK Frontend -->
 <script
   type="module"
