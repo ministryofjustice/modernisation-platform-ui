@@ -55,6 +55,8 @@ spec:
               value: {{ .Values.app.deployment.env.SENTRY_DSN_KEY | quote }}
             - name: SENTRY_ENV
               value: {{ .Values.app.deployment.env.SENTRY_ENV | quote }}
+            - name: SLACK_BOT_TOKEN
+              value: {{ .Values.app.deployment.env.SLACK_BOT_TOKEN | quote }}
 
           ports:
             - name: http

@@ -126,11 +126,11 @@
   }
 
   function tableWrap(headers, bodyRows) {
-    var ths = headers.map(function (h) {
+    var thCells = headers.map(function (h) {
       return '<th scope="col" class="govuk-table__header">' + esc(h) + '</th>';
     }).join('');
     return '<table class="govuk-table govuk-!-margin-bottom-0">' +
-      '<thead class="govuk-table__head"><tr class="govuk-table__row">' + ths + '</tr></thead>' +
+      '<thead class="govuk-table__head"><tr class="govuk-table__row">' + thCells + '</tr></thead>' +
       '<tbody class="govuk-table__body">' + bodyRows + '</tbody></table>';
   }
 
@@ -190,6 +190,15 @@
           '</tr>';
       });
       return tableWrap(['PR', 'Posted by', 'Time'], rows);
+    } else if (task.table_type === 'issues') {
+      task.messages.forEach(function (msg) {
+        rows += '<tr class="govuk-table__row">' +
+          '<td class="govuk-table__cell"><a class="govuk-link" href="' + esc(msg.link) + '" target="_blank" rel="noopener noreferrer">' + esc(msg.text) + '</a></td>' +
+          '<td class="govuk-table__cell">' + esc(msg.user) + '</td>' +
+          '<td class="govuk-table__cell govuk-!-white-space-nowrap">' + esc(msg.time) + '</td>' +
+          '</tr>';
+      });
+      return tableWrap(['Issue', 'Repository', 'Updated'], rows);
     } else {
       task.messages.forEach(function (msg) {
         var ackCell = msg.acknowledged_by ? '\uD83D\uDC40 ' + esc(msg.acknowledged_by) : '\u2014';
@@ -356,5 +365,6 @@
       });
   }
 
+  poll();
   setInterval(poll, 60000);
 }());
