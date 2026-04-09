@@ -1,6 +1,7 @@
 import logging
 from flask import Blueprint, render_template, jsonify
 from app.projects.reports.services.service import get_all_json_data, get_readme_incident_info, get_collaborators_data
+from app.projects.milk_monitor.services.slack_service import get_slack_channel_analytics
 
 from app.shared.middleware.auth import requires_auth
 
@@ -341,4 +342,14 @@ def platform_environments_summary():
         total_apps=len(data),
         total_accounts=total_accounts,
         app_details=app_details
+    )
+
+
+@reports_main.route("/ask-modernisation-platform-summary")
+@requires_auth
+def ask_modernisation_platform_summary():
+    analytics = get_slack_channel_analytics("ask-modernisation-platform", lookback_days=180)
+    return render_template(
+        "projects/reports/pages/ask_modernisation_platform_summary.html",
+        analytics=analytics,
     )
