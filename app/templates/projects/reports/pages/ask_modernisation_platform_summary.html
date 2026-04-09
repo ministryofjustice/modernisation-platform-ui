@@ -1,0 +1,241 @@
+{% extends "shared/components/base.html" %} {% block pageTitle %} Ask Modernisation
+Platform Summary {% endblock %} {% block content %}
+
+{% set breadcrumbs = {
+  "items": [
+    { "text": "Home", "href": "/" },
+    { "text": "Reports", "href": "/reports" },
+    { "text": "Ask Modernisation Platform Summary" }
+  ]
+} %}
+{{ govukBreadcrumbs(breadcrumbs)}}
+
+<h1 class="govuk-heading-l">Ask Modernisation Platform Slack Insights</h1>
+<p class="govuk-body">
+  Message trends for original posts in
+  <a class="govuk-link" href="https://mojdt.slack.com/archives/ask-modernisation-platform" target="_blank" rel="noopener noreferrer">#ask-modernisation-platform</a>
+  over the last {{ analytics.lookback_days }} days.
+</p>
+
+{% if analytics.error %}
+<div class="govuk-error-summary" data-module="govuk-error-summary">
+  <div role="alert">
+    <h2 class="govuk-error-summary__title">Unable to load Slack analytics</h2>
+    <div class="govuk-error-summary__body">
+      <p class="govuk-body">{{ analytics.error }}</p>
+      <p class="govuk-body-s">Please confirm the Slack bot token is configured and the bot is a member of the channel.</p>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div class="govuk-grid-row govuk-!-margin-bottom-6">
+  <div class="govuk-grid-column-one-third">
+    <div style="background-color: #f3f2f1; padding: 20px; text-align: center; border-left: 5px solid #1d70b8;">
+      <h2 class="govuk-heading-xl govuk-!-margin-bottom-2">{{ analytics.counts.day }}</h2>
+      <p class="govuk-body-s govuk-!-margin-bottom-0">Messages in last 24 hours</p>
+    </div>
+  </div>
+  <div class="govuk-grid-column-one-third">
+    <div style="background-color: #f3f2f1; padding: 20px; text-align: center; border-left: 5px solid #00703c;">
+      <h2 class="govuk-heading-xl govuk-!-margin-bottom-2">{{ analytics.counts.week }}</h2>
+      <p class="govuk-body-s govuk-!-margin-bottom-0">Messages in last 7 days</p>
+    </div>
+  </div>
+  <div class="govuk-grid-column-one-third">
+    <div style="background-color: #f3f2f1; padding: 20px; text-align: center; border-left: 5px solid #d4351c;">
+      <h2 class="govuk-heading-xl govuk-!-margin-bottom-2">{{ analytics.counts.month }}</h2>
+      <p class="govuk-body-s govuk-!-margin-bottom-0">Messages in last 30 days</p>
+    </div>
+  </div>
+</div>
+
+<div class="govuk-grid-row govuk-!-margin-bottom-6">
+  <div class="govuk-grid-column-one-half">
+    <div style="background-color: #f8f8f8; padding: 16px; border-left: 4px solid #003078;">
+      <h2 class="govuk-heading-s govuk-!-margin-bottom-1">Peak Time of Day (UTC)</h2>
+      <p class="govuk-body govuk-!-margin-bottom-0">
+        {{ analytics.peak_hour.hour }} with {{ analytics.peak_hour.count }} original messages.
+      </p>
+    </div>
+  </div>
+  <div class="govuk-grid-column-one-half">
+    <div style="background-color: #f8f8f8; padding: 16px; border-left: 4px solid #505a5f;">
+      <h2 class="govuk-heading-s govuk-!-margin-bottom-1">Total Messages Analysed</h2>
+      <p class="govuk-body govuk-!-margin-bottom-0">{{ analytics.total_messages }}</p>
+    </div>
+  </div>
+</div>
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-one-half">
+    <section class="govuk-!-margin-bottom-6">
+      <h2 class="govuk-heading-m">Daily Trend (Last 30 Days)</h2>
+      <p class="govuk-body-s">Original messages per day over the last 30 days.</p>
+      <div style="max-width: 100%; margin: 0 auto; min-height: 320px;">
+        <canvas id="dailyChart" height="320"></canvas>
+      </div>
+    </section>
+  </div>
+  <div class="govuk-grid-column-one-half">
+    <section class="govuk-!-margin-bottom-6">
+      <h2 class="govuk-heading-m">Weekly Trend (Last 12 Weeks)</h2>
+      <p class="govuk-body-s">Original messages grouped by week over the last 12 weeks.</p>
+      <div style="max-width: 100%; margin: 0 auto; min-height: 320px;">
+        <canvas id="weeklyChart" height="320"></canvas>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-one-half">
+    <section class="govuk-!-margin-bottom-6">
+      <h2 class="govuk-heading-m">Monthly Trend (Last {{ analytics.monthly_window_months }} Months)</h2>
+      <p class="govuk-body-s">Original messages grouped by month across the current {{ analytics.lookback_days }} day lookback window.</p>
+      <div style="max-width: 100%; margin: 0 auto; min-height: 320px;">
+        <canvas id="monthlyChart" height="320"></canvas>
+      </div>
+    </section>
+  </div>
+  <div class="govuk-grid-column-one-half">
+    <section class="govuk-!-margin-bottom-6">
+      <h2 class="govuk-heading-m">Hourly Distribution (UTC)</h2>
+      <p class="govuk-body-s">Original messages grouped into one-hour ranges across the full {{ analytics.lookback_days }} day lookback window.</p>
+      <div style="max-width: 100%; margin: 0 auto; min-height: 320px;">
+        <canvas id="hourlyChart" height="320"></canvas>
+      </div>
+    </section>
+  </div>
+</div>
+
+<section class="govuk-!-margin-bottom-6">
+  <h2 class="govuk-heading-m">Top Original Posters</h2>
+  <p class="govuk-body-s">Leaderboard for users who posted parent messages in the channel over the last {{ analytics.lookback_days }} days.</p>
+
+  <table class="govuk-table">
+    <thead class="govuk-table__head">
+      <tr class="govuk-table__row">
+        <th scope="col" class="govuk-table__header">Rank</th>
+        <th scope="col" class="govuk-table__header">User</th>
+        <th scope="col" class="govuk-table__header">Messages</th>
+      </tr>
+    </thead>
+    <tbody class="govuk-table__body">
+      {% for user in analytics.user_leaderboard %}
+      <tr class="govuk-table__row">
+        <td class="govuk-table__cell">{{ loop.index }}</td>
+        <td class="govuk-table__cell">{{ user.user_name }}</td>
+        <td class="govuk-table__cell">{{ user.count }}</td>
+      </tr>
+      {% endfor %}
+      {% if analytics.user_leaderboard|length == 0 %}
+      <tr class="govuk-table__row">
+        <td class="govuk-table__cell" colspan="3">No messages found for the selected period.</td>
+      </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script id="daily-labels-data" type="application/json">{{ analytics.daily_series | map(attribute="label") | list | tojson }}</script>
+<script id="daily-values-data" type="application/json">{{ analytics.daily_series | map(attribute="count") | list | tojson }}</script>
+<script id="weekly-labels-data" type="application/json">{{ analytics.weekly_series | map(attribute="label") | list | tojson }}</script>
+<script id="weekly-values-data" type="application/json">{{ analytics.weekly_series | map(attribute="count") | list | tojson }}</script>
+<script id="monthly-labels-data" type="application/json">{{ analytics.monthly_series | map(attribute="label") | list | tojson }}</script>
+<script id="monthly-values-data" type="application/json">{{ analytics.monthly_series | map(attribute="count") | list | tojson }}</script>
+<script id="hourly-labels-data" type="application/json">{{ analytics.hourly_distribution | map(attribute="hour") | list | tojson }}</script>
+<script id="hourly-values-data" type="application/json">{{ analytics.hourly_distribution | map(attribute="count") | list | tojson }}</script>
+
+<script>
+  const parseJsonScript = (id) => JSON.parse(document.getElementById(id).textContent);
+
+  const dailyLabels = parseJsonScript('daily-labels-data');
+  const dailyData = parseJsonScript('daily-values-data');
+  const weeklyLabels = parseJsonScript('weekly-labels-data');
+  const weeklyData = parseJsonScript('weekly-values-data');
+  const monthlyLabels = parseJsonScript('monthly-labels-data');
+  const monthlyData = parseJsonScript('monthly-values-data');
+  const hourlyLabels = parseJsonScript('hourly-labels-data');
+  const hourlyData = parseJsonScript('hourly-values-data');
+
+  const defaultChartOptions = {
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: { precision: 0 }
+      }
+    }
+  };
+
+  new Chart(document.getElementById('dailyChart').getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: dailyLabels,
+      datasets: [{
+        label: 'Messages',
+        data: dailyData,
+        borderColor: '#1d70b8',
+        backgroundColor: 'rgba(29, 112, 184, 0.2)',
+        borderWidth: 2,
+        tension: 0.2,
+        fill: true
+      }]
+    },
+    options: defaultChartOptions
+  });
+
+  new Chart(document.getElementById('weeklyChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: weeklyLabels,
+      datasets: [{
+        label: 'Messages',
+        data: weeklyData,
+        backgroundColor: '#00703c',
+        borderColor: '#004b28',
+        borderWidth: 1
+      }]
+    },
+    options: defaultChartOptions
+  });
+
+  new Chart(document.getElementById('monthlyChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: monthlyLabels,
+      datasets: [{
+        label: 'Messages',
+        data: monthlyData,
+        backgroundColor: '#d4351c',
+        borderColor: '#942514',
+        borderWidth: 1
+      }]
+    },
+    options: defaultChartOptions
+  });
+
+  new Chart(document.getElementById('hourlyChart').getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: hourlyLabels,
+      datasets: [{
+        label: 'Messages',
+        data: hourlyData,
+        borderColor: '#505a5f',
+        backgroundColor: 'rgba(80, 90, 95, 0.2)',
+        borderWidth: 2,
+        tension: 0.2,
+        fill: true
+      }]
+    },
+    options: defaultChartOptions
+  });
+</script>
+
+{% endblock %}

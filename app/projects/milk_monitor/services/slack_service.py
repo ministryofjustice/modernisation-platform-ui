@@ -1,6 +1,10 @@
+import json
 import logging
+import os
 import re
 import time
+from collections import Counter, defaultdict
+from datetime import datetime, timedelta, timezone
 
 import requests
 
@@ -72,6 +76,10 @@ PR_COMPLETION_EMOJIS = frozenset(
 )
 
 _user_name_cache: dict[str, str] = {}
+
+# File-based cache for analytics results — shared across Gunicorn workers
+ANALYTICS_CACHE_FILE = "/tmp/slack_analytics_cache.json"
+ANALYTICS_CACHE_TTL = 1800  # 30 minutes
 
 
 def convert_slack_emojis(text: str) -> str:
@@ -556,3 +564,256 @@ def get_slack_pr_links(channel_name: str) -> dict:
             f"Error fetching PR links from #{channel_name}: {e}", exc_info=True
         )
         return {"count": 0, "messages": [], "completed": []}
+
+
+def get_slack_channel_analytics(channel_name: str, lookback_days: int = 180) -> dict:
+    """Return message volume analytics for original posts in a Slack channel."""
+    now = time.time()
+    cache_key = f"{channel_name}:{lookback_days}"
+
+    if os.path.exists(ANALYTICS_CACHE_FILE):
+        try:
+            with open(ANALYTICS_CACHE_FILE, "r") as f:
+                cache_data = json.load(f)
+            cache_age = now - cache_data.get("timestamp", 0)
+            if cache_age < ANALYTICS_CACHE_TTL and cache_data.get("key") == cache_key:
+                logger.debug(f"Returning cached Slack analytics for #{channel_name}")
+                return cache_data["data"]
+        except (json.JSONDecodeError, IOError, KeyError):
+            pass
+
+    headers = _get_auth_headers()
+    if not headers:
+        return {
+            "error": "SLACK_BOT_TOKEN not configured",
+            "counts": {"day": 0, "week": 0, "month": 0},
+            "daily_series": [],
+            "weekly_series": [],
+            "monthly_series": [],
+            "hourly_distribution": [],
+            "user_leaderboard": [],
+            "peak_hour": {"hour": "N/A", "count": 0},
+            "total_messages": 0,
+            "lookback_days": lookback_days,
+        }
+
+    try:
+        channel_id = _find_channel_id(headers, channel_name)
+        if not channel_id:
+            return {
+                "error": f"Channel '{channel_name}' not found or bot is not a member",
+                "counts": {"day": 0, "week": 0, "month": 0},
+                "daily_series": [],
+                "weekly_series": [],
+                "monthly_series": [],
+                "hourly_distribution": [],
+                "user_leaderboard": [],
+                "peak_hour": {"hour": "N/A", "count": 0},
+                "total_messages": 0,
+                "lookback_days": lookback_days,
+            }
+
+        now_ts = int(time.time())
+        now_dt = datetime.fromtimestamp(now_ts, tz=timezone.utc)
+        oldest_ts = now_ts - (lookback_days * 24 * 60 * 60)
+        oldest_dt = datetime.fromtimestamp(oldest_ts, tz=timezone.utc)
+
+        all_messages: list[dict] = []
+        cursor = None
+
+        for _ in range(40):  # Up to ~8,000 messages (40 * 200)
+            params: dict = {
+                "channel": channel_id,
+                "oldest": str(oldest_ts),
+                "limit": 200,
+            }
+            if cursor:
+                params["cursor"] = cursor
+
+            response = requests.get(
+                f"{SLACK_API_BASE}/conversations.history",
+                headers=headers,
+                params=params,
+                timeout=10,
+            )
+            if response.status_code != 200:
+                logger.error(
+                    f"Slack history request failed for #{channel_name}: {response.status_code}"
+                )
+                break
+
+            data = response.json()
+            if not data.get("ok"):
+                logger.error(
+                    f"Slack API error reading #{channel_name} history: {data.get('error')}"
+                )
+                break
+
+            batch = data.get("messages", [])
+            if not batch:
+                break
+
+            all_messages.extend(batch)
+
+            cursor = data.get("response_metadata", {}).get("next_cursor")
+            if not cursor:
+                break
+
+        daily_counts: defaultdict[str, int] = defaultdict(int)
+        weekly_counts: defaultdict[str, int] = defaultdict(int)
+        monthly_counts: defaultdict[str, int] = defaultdict(int)
+        hourly_counts: defaultdict[int, int] = defaultdict(int)
+        user_counts: Counter[str] = Counter()
+
+        last_day = now_ts - (24 * 60 * 60)
+        last_week = now_ts - (7 * 24 * 60 * 60)
+        last_month = now_ts - (30 * 24 * 60 * 60)
+
+        count_day = 0
+        count_week = 0
+        count_month = 0
+        total_messages = 0
+
+        for msg in all_messages:
+            subtype = msg.get("subtype")
+            if subtype or msg.get("bot_id"):
+                continue
+
+            if msg.get("thread_ts") and msg.get("thread_ts") != msg.get("ts"):
+                continue
+
+            user_id = msg.get("user")
+            ts = msg.get("ts")
+            if not user_id or not ts:
+                continue
+
+            try:
+                ts_float = float(ts)
+            except (TypeError, ValueError):
+                continue
+
+            msg_dt = datetime.fromtimestamp(ts_float, tz=timezone.utc)
+            msg_date = msg_dt.date()
+            week_start = msg_date - timedelta(days=msg_date.weekday())
+
+            total_messages += 1
+            user_counts[user_id] += 1
+            daily_counts[msg_date.isoformat()] += 1
+            weekly_counts[week_start.isoformat()] += 1
+            monthly_counts[f"{msg_dt.year}-{msg_dt.month:02d}"] += 1
+            hourly_counts[msg_dt.hour] += 1
+
+            if ts_float >= last_day:
+                count_day += 1
+            if ts_float >= last_week:
+                count_week += 1
+            if ts_float >= last_month:
+                count_month += 1
+
+        daily_series: list[dict] = []
+        for day_offset in range(29, -1, -1):
+            day = (now_dt - timedelta(days=day_offset)).date().isoformat()
+            daily_series.append({"label": day, "count": daily_counts.get(day, 0)})
+
+        this_week_start = now_dt.date() - timedelta(days=now_dt.date().weekday())
+        weekly_series: list[dict] = []
+        for week_offset in range(11, -1, -1):
+            week_start = this_week_start - timedelta(weeks=week_offset)
+            week_key = week_start.isoformat()
+            weekly_series.append(
+                {
+                    "label": week_key,
+                    "count": weekly_counts.get(week_key, 0),
+                }
+            )
+
+        current_month = now_dt.year * 12 + (now_dt.month - 1)
+        oldest_month = oldest_dt.year * 12 + (oldest_dt.month - 1)
+        monthly_window_months = max(1, min(12, (current_month - oldest_month) + 1))
+        monthly_series: list[dict] = []
+        for month_offset in range(monthly_window_months - 1, -1, -1):
+            month_value = current_month - month_offset
+            year = month_value // 12
+            month = (month_value % 12) + 1
+            month_key = f"{year}-{month:02d}"
+            monthly_series.append(
+                {
+                    "label": datetime(year, month, 1).strftime("%b %Y"),
+                    "count": monthly_counts.get(month_key, 0),
+                }
+            )
+
+        hourly_distribution = [
+            {
+                "hour": f"{hour:02d}:00-{(hour + 1) % 24:02d}:00",
+                "count": hourly_counts.get(hour, 0),
+            }
+            for hour in range(24)
+        ]
+
+        peak_hour_int = 0
+        peak_hour_count = 0
+        if hourly_counts:
+            peak_hour_int, peak_hour_count = max(
+                hourly_counts.items(), key=lambda item: item[1]
+            )
+
+        user_leaderboard: list[dict] = []
+        for user_id, count in user_counts.most_common(15):
+            user_leaderboard.append(
+                {
+                    "user_id": user_id,
+                    "user_name": get_slack_user_name(user_id),
+                    "count": count,
+                }
+            )
+
+        logger.info(
+            f"Slack analytics for #{channel_name}: {total_messages} original messages in {lookback_days} days"
+        )
+
+        result = {
+            "error": None,
+            "channel": channel_name,
+            "channel_id": channel_id,
+            "counts": {"day": count_day, "week": count_week, "month": count_month},
+            "daily_series": daily_series,
+            "weekly_series": weekly_series,
+            "monthly_series": monthly_series,
+            "monthly_window_months": monthly_window_months,
+            "hourly_distribution": hourly_distribution,
+            "user_leaderboard": user_leaderboard,
+            "peak_hour": {
+                "hour": f"{peak_hour_int:02d}:00-{(peak_hour_int + 1) % 24:02d}:00",
+                "count": peak_hour_count,
+            },
+            "total_messages": total_messages,
+            "lookback_days": lookback_days,
+        }
+
+        try:
+            with open(ANALYTICS_CACHE_FILE, "w") as f:
+                json.dump({"key": cache_key, "data": result, "timestamp": now}, f)
+        except IOError:
+            pass
+
+        return result
+
+    except Exception as e:
+        logger.error(
+            f"Error building analytics for #{channel_name}: {e}",
+            exc_info=True,
+        )
+        return {
+            "error": "Unable to fetch Slack analytics",
+            "counts": {"day": 0, "week": 0, "month": 0},
+            "daily_series": [],
+            "weekly_series": [],
+            "monthly_series": [],
+            "monthly_window_months": 0,
+            "hourly_distribution": [],
+            "user_leaderboard": [],
+            "peak_hour": {"hour": "N/A", "count": 0},
+            "total_messages": 0,
+            "lookback_days": lookback_days,
+        }
