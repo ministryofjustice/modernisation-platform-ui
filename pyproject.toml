@@ -11,12 +11,12 @@ dependencies = [
   "flask-limiter==4.1.1",
   "flask-sqlalchemy==3.1.1",
   "govuk-frontend-jinja==4.0.0",
-  "gunicorn==25.1.0",
-  "pygithub==2.8.1",
+  "gunicorn==25.3.0",
+  "pygithub==2.9.0",
   "pynacl==1.6.2",
-  "sentry-sdk==2.55.0",
+  "sentry-sdk==2.56.0",
   "urllib3==2.6.3",
-  "werkzeug==3.1.6",
+  "werkzeug==3.1.7",
 ]
 
 [dependency-groups]
@@ -24,7 +24,7 @@ dev = [
   "coverage==7.13.5",
   "pre-commit==4.5.1",
   "pytest==9.0.2",
-  "ruff==0.15.7",
+  "ruff==0.15.8",
   "zizmor==1.23.1",
 ]
 
