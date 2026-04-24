@@ -50,7 +50,7 @@ class AwsService:
             session_name="modernisation-platform-aws-account-standards-scanner",
         )
 
-    def __log_session_identiy(self, session: Session) -> None:
+    def __log_session_identity(self, session: Session) -> None:
         sts_client = self.__get_sts_client(session)
         identity = sts_client.get_caller_identity()
         logger.info(
@@ -64,9 +64,9 @@ class AwsService:
         self, account_id: str
     ) -> None:
         base_session = self.__get_base_session()
-        self.__log_session_identiy(base_session)
+        self.__log_session_identity(base_session)
 
         mp_scanner_role_session = self.__assume_mp_scanner_role(
             base_session, account_id=account_id
         )
-        self.__log_session_identiy(mp_scanner_role_session)
+        self.__log_session_identity(mp_scanner_role_session)
