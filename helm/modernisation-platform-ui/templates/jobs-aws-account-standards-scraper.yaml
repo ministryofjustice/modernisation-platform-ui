@@ -1,0 +1,43 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: aws-account-standards-scraper
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+spec:
+  schedule: "{{ .Values.app.jobs.aws_account_standards_scraper.schedule }}"
+  concurrencyPolicy: Replace
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 300
+  successfulJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: aws-account-standards
+          securityContext:
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+          - name: aws-account-standards-scraper
+            image: "{{ .Values.app.deployment.image.repository }}:{{ .Values.app.deployment.image.tag | default .Chart.AppVersion }}"
+            command: ["python3", "-m"]
+            args: ["app.projects.aws_account_standards.jobs.scraper"]
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - "ALL"
+              runAsNonRoot: true
+              seccompProfile:
+                type: RuntimeDefault
+            env:
+             - name: GUNICORN_WORKERS
+               value: "1"
+             - name: COOKER_ACCOUNT_ID
+               value: {{ .Values.app.deployment.env.COOKER_ACCOUNT_ID | quote }}
+
+
+          restartPolicy: Never
+          activeDeadlineSeconds: 7200
