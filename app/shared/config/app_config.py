@@ -28,6 +28,7 @@ app_config = SimpleNamespace(
         client_id=__get_env_var("AUTH0_CLIENT_ID"),
         client_secret=__get_env_var("AUTH0_CLIENT_SECRET"),
     ),
+    aws=SimpleNamespace(cooker_account_id=__get_env_var("COOKER_ACCOUNT_ID")),
     flask=SimpleNamespace(
         app_secret_key=__get_env_var("APP_SECRET_KEY"),
     ),

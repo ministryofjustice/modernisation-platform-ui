@@ -29,6 +29,7 @@ env:
   GITHUB_APP_INSTALLATION_ID: ${{ vars.GH_APP_INSTALLATION_ID }}
   SENTRY_DSN_KEY: ${{ secrets.SENTRY_DSN_KEY }}
   SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+  COOKER_ACCOUNT_ID: ${{ secrets.COOKER_ACCOUNT_ID }}
 
 jobs:
   build-push-image:
@@ -108,4 +109,5 @@ jobs:
             --set app.deployment.env.SENTRY_DSN_KEY="${SENTRY_DSN_KEY}" \
             --set app.deployment.image.repository="${ECR_REGISTRY}/${ECR_REPOSITORY}" \
             --set app.deployment.image.tag="${IMAGE_TAG}" \
-            --set app.deployment.env.SLACK_BOT_TOKEN="${SLACK_BOT_TOKEN}"
+            --set app.deployment.env.SLACK_BOT_TOKEN="${SLACK_BOT_TOKEN}" \
+            --set app.deployment.env.COOKER_ACCOUNT_ID="${COOKER_ACCOUNT_ID}"

@@ -14,3 +14,7 @@ app:
       FLASK_DEBUG: true
       PHASE_BANNER_TEXT: "ALPHA"
       AUTH_ENABLED: true
+
+  jobs:
+    aws_account_standards_scraper:
+      schedule: "0 4 * * 1"
