@@ -46,75 +46,70 @@
     return d.innerHTML;
   }
 
-  /* ── Favicon badge ──────────────────────────────────────────────────────── */
+  /* ── Favicon dot ─────────────────────────────────────────────────────────── */
+  // Approach: fetch the SVG source once, cache it, then inject a <circle>
+  // element directly and set the href to a data:image/svg+xml URI.
+  // This is more reliable than canvas manipulation, which silently fails when
+  // an SVG has no explicit width/height attributes (naturalWidth === 0).
+  var _faviconSvgCache = null;
+
+  function applyFaviconDot(svgText, allClear) {
+    var colour = allClear ? '#00703c' : '#d4351c';
+    var dot = '<circle cx="25" cy="25" r="8.5" fill="#ffffff"/>' +
+              '<circle cx="25" cy="25" r="7" fill="' + colour + '"/>';
+    var patched = svgText.replace('</svg>', dot + '</svg>');
+    var dataUri = 'data:image/svg+xml,' + encodeURIComponent(patched);
+
+    // Browsers (especially Chrome/Safari) often ignore href changes on an
+    // existing <link rel="icon"> element. Remove it and insert a fresh one.
+    var old = document.getElementById('mm-favicon');
+    if (old) { old.parentNode.removeChild(old); }
+    var link = document.createElement('link');
+    link.id = 'mm-favicon';
+    link.rel = 'icon';
+    link.type = 'image/svg+xml';
+    link.href = dataUri;
+    document.head.appendChild(link);
+  }
+
   function updateFavicon(count) {
     var link = document.getElementById('mm-favicon');
     if (!link) { return; }
 
-    // Persist the original href on first call so we can restore it
-    if (!link.getAttribute('data-orig-href')) {
-      link.setAttribute('data-orig-href', link.href);
-    }
-    var origHref = link.getAttribute('data-orig-href');
+    var allClear = !count || count < 1;
 
-    if (!count || count < 1) {
-      link.href = origHref;
+    if (_faviconSvgCache) {
+      applyFaviconDot(_faviconSvgCache, allClear);
       return;
     }
 
-    var size = 32;
-    var label = count > 99 ? '99+' : String(count);
-
-    function drawBadge(ctx) {
-      var radius = label.length > 2 ? 8 : 7;
-      var cx = size - radius - 1;
-      var cy = radius + 1;
-      ctx.beginPath();
-      ctx.arc(cx, cy, radius + 1, 0, 2 * Math.PI);
-      ctx.fillStyle = '#d4351c';
-      ctx.fill();
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold ' + (label.length > 2 ? 7 : 9) + 'px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(label, cx, cy);
+    // Store original href before we overwrite it
+    if (!link.getAttribute('data-orig-href')) {
+      link.setAttribute('data-orig-href', link.getAttribute('href'));
     }
+    var origHref = link.getAttribute('data-orig-href');
 
-    // Fetch the SVG as a blob then create an object URL — drawing a blob URL
-    // onto a canvas does NOT taint it, unlike drawing a direct SVG src URL.
     fetch(origHref, { credentials: 'same-origin' })
-      .then(function (r) { return r.blob(); })
-      .then(function (blob) {
-        var blobUrl = URL.createObjectURL(blob);
-        var img = new Image();
-        img.onload = function () {
-          var cvs = document.createElement('canvas');
-          cvs.width = size;
-          cvs.height = size;
-          var ctx = cvs.getContext('2d');
-          ctx.drawImage(img, 0, 0, size, size);
-          URL.revokeObjectURL(blobUrl);
-          drawBadge(ctx);
-          link.href = cvs.toDataURL('image/png');
-        };
-        img.src = blobUrl;
+      .then(function (r) { return r.ok ? r.text() : Promise.reject(r.status); })
+      .then(function (svgText) {
+        _faviconSvgCache = svgText;
+        applyFaviconDot(svgText, allClear);
       })
       .catch(function () {
-        // Fallback: plain red circle with count if SVG fetch fails
-        var cvs = document.createElement('canvas');
-        cvs.width = size;
-        cvs.height = size;
-        var ctx = cvs.getContext('2d');
-        ctx.beginPath();
-        ctx.arc(size / 2, size / 2, size / 2, 0, 2 * Math.PI);
-        ctx.fillStyle = '#d4351c';
-        ctx.fill();
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 14px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(label, size / 2, size / 2);
-        link.href = cvs.toDataURL('image/png');
+        // Fallback: simple coloured circle as an inline SVG
+        var colour = allClear ? '#00703c' : '#d4351c';
+        var dataUri = 'data:image/svg+xml,' + encodeURIComponent(
+          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">' +
+          '<circle cx="16" cy="16" r="16" fill="' + colour + '"/></svg>'
+        );
+        var old = document.getElementById('mm-favicon');
+        if (old) { old.parentNode.removeChild(old); }
+        var link = document.createElement('link');
+        link.id = 'mm-favicon';
+        link.rel = 'icon';
+        link.type = 'image/svg+xml';
+        link.href = dataUri;
+        document.head.appendChild(link);
       });
   }
 
@@ -247,14 +242,15 @@
     if (!soundToggle || !soundToggle.checked) { return; }
     try {
       var ctx = new (window.AudioContext || window.webkitAudioContext)();
-      [[440, 0, 0.15], [550, 0.18, 0.15]].forEach(function (note) {
+      // Three-note ascending ping: bright, short, obvious
+      [[880, 0, 0.12], [1100, 0.14, 0.12], [1320, 0.28, 0.2]].forEach(function (note) {
         var osc = ctx.createOscillator();
         var gain = ctx.createGain();
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.type = 'sine';
         osc.frequency.value = note[0];
-        gain.gain.setValueAtTime(0.25, ctx.currentTime + note[1]);
+        gain.gain.setValueAtTime(0.35, ctx.currentTime + note[1]);
         gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + note[1] + note[2]);
         osc.start(ctx.currentTime + note[1]);
         osc.stop(ctx.currentTime + note[1] + note[2]);

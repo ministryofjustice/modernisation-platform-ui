@@ -1,6 +1,7 @@
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
 from flask import Blueprint, jsonify, render_template
 
@@ -8,6 +9,8 @@ from app.projects.milk_monitor.services import github_service, slack_service
 from app.shared.middleware.auth import requires_auth
 
 logger = logging.getLogger(__name__)
+
+UK_TIMEZONE = ZoneInfo("Europe/London")
 
 milk_monitor_main = Blueprint("milk_monitor_main", __name__)
 
@@ -319,7 +322,7 @@ def milk_monitor_dashboard():
         optional_tasks=optional_tasks,
         total_count=total_count,
         status_counts=status_counts,
-        fetched_at=datetime.now(tz=timezone.utc).strftime("%H:%M UTC"),
+        fetched_at=datetime.now(tz=UK_TIMEZONE).strftime("%H:%M %Z"),
     )
 
 
@@ -369,5 +372,5 @@ def milk_monitor_data():
         "total_count": total_count,
         "status_counts": status_counts,
         "tasks": results,
-        "fetched_at": datetime.now(tz=timezone.utc).strftime("%H:%M UTC"),
+        "fetched_at": datetime.now(tz=UK_TIMEZONE).strftime("%H:%M %Z"),
     })
