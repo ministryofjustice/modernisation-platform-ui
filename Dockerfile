@@ -17,6 +17,8 @@ ENV UV_COMPILE_BYTECODE=1 \
 
 WORKDIR /app
 
+RUN apk add --no-cache gcc musl-dev libffi-dev
+
 COPY --from=uv /usr/local/bin/uv /usr/local/bin/uv
 
 RUN --mount=type=cache,target=/root/.cache/uv \
