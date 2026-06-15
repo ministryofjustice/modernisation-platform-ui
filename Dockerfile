@@ -8,7 +8,7 @@ FROM ghcr.io/astral-sh/uv:python3.13-alpine@sha256:b2968dc4b3d7b8e52dfbbd26d5505
 # Stage: builder
 # From: docker.io/python:3.13-alpine3.22
 ##################################################
-FROM docker.io/python:3.14.5-alpine3.22@sha256:6b91e66ab2a880ce9ca5a1b91c70f45963ff71ff68268df056336e1a657d5efd AS builder
+FROM docker.io/python:3.15.0b2-alpine3.22@sha256:8374b202f092c233441f36b3018fd839c5c42d58b0a8ea479860f9ff2326d8cf AS builder
 
 ARG BUILD_DEV="false"
 
@@ -16,6 +16,11 @@ ENV UV_COMPILE_BYTECODE=1 \
   UV_LINK_MODE="copy"
 
 WORKDIR /app
+
+RUN apk add --no-cache \
+  gcc=14.2.0-r6 \
+  musl-dev=1.2.5-r12 \
+  libffi-dev=3.4.8-r0
 
 COPY --from=uv /usr/local/bin/uv /usr/local/bin/uv
 
@@ -37,7 +42,7 @@ EOF
 ##################################################
 #checkov:skip=CKV_DOCKER_2: HEALTHCHECK not required - Health checks are implemented in Kubernetes as liveness and readiness probes
 
-FROM docker.io/python:3.14.5-alpine3.22@sha256:6b91e66ab2a880ce9ca5a1b91c70f45963ff71ff68268df056336e1a657d5efd AS final
+FROM docker.io/python:3.15.0b2-alpine3.22@sha256:8374b202f092c233441f36b3018fd839c5c42d58b0a8ea479860f9ff2326d8cf AS final
 
 LABEL org.opencontainers.image.vendor="Ministry of Justice" \
   org.opencontainers.image.authors="GitHub Community <modernisation-platform@digital.justice.gov.uk>" \
