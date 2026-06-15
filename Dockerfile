@@ -17,7 +17,10 @@ ENV UV_COMPILE_BYTECODE=1 \
 
 WORKDIR /app
 
-RUN apk add --no-cache gcc musl-dev libffi-dev
+RUN apk add --no-cache \
+  gcc=14.2.0-r6 \
+  musl-dev=1.2.5-r12 \
+  libffi-dev=3.4.8-r0
 
 COPY --from=uv /usr/local/bin/uv /usr/local/bin/uv
 
