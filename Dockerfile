@@ -2,13 +2,13 @@
 # Stage: uv
 # From: ghcr.io/astral-sh/uv:python3.13-alpine
 ##################################################
-FROM ghcr.io/astral-sh/uv:python3.13-alpine@sha256:b2968dc4b3d7b8e52dfbbd26d550565af4ae379148e88ddfb8723039369ab359 AS uv
+FROM ghcr.io/astral-sh/uv:python3.13-alpine@sha256:79ae0b53993231f6533bd9e9cfc3e53485b6ac5baf7ff0b338dfd0a91ebb87c8 AS uv
 
 ##################################################
 # Stage: builder
 # From: docker.io/python:3.13-alpine
 ##################################################
-FROM docker.io/python:3.13-alpine@sha256:7415fbc3c9e4979cc717d92377ab2bc7b2b4a2af1ac03cc52b5f3f88efedaf3a AS builder
+FROM docker.io/python:3.13-alpine@sha256:79e7a9b9ff1cbceff819f856fb374477792a5967759d94df266de7b7b4120e6f AS builder
 
 ARG BUILD_DEV="false"
 
@@ -43,7 +43,7 @@ EOF
 ##################################################
 #checkov:skip=CKV_DOCKER_2: HEALTHCHECK not required - Health checks are implemented in Kubernetes as liveness and readiness probes
 
-FROM docker.io/python:3.13-alpine@sha256:7415fbc3c9e4979cc717d92377ab2bc7b2b4a2af1ac03cc52b5f3f88efedaf3a AS final
+FROM docker.io/python:3.13-alpine@sha256:79e7a9b9ff1cbceff819f856fb374477792a5967759d94df266de7b7b4120e6f AS final
 
 LABEL org.opencontainers.image.vendor="Ministry of Justice" \
   org.opencontainers.image.authors="GitHub Community <modernisation-platform@digital.justice.gov.uk>" \
