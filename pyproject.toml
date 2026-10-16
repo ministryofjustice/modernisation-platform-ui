@@ -3,7 +3,7 @@ name = "modernisation-platform-ui"
 version = "1.0.0"
 description = "Passionate engineers delivering great services"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.14"
 dependencies = [
   "authlib==1.8.0",
   "boto3==1.43.102",

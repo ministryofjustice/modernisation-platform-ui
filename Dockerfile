@@ -1,14 +1,14 @@
 ##################################################
 # Stage: uv
-# From: ghcr.io/astral-sh/uv:python3.13-alpine
+# From: ghcr.io/astral-sh/uv:python3.14-alpine
 ##################################################
-FROM ghcr.io/astral-sh/uv:python3.13-alpine@sha256:79ae0b53993231f6533bd9e9cfc3e53485b6ac5baf7ff0b338dfd0a91ebb87c8 AS uv
+FROM ghcr.io/astral-sh/uv:python3.14-alpine@sha256:513b826406ed7efc2604acdf4935266e020283ce17e2ea96509cd4f1a68b9f1a AS uv
 
 ##################################################
 # Stage: builder
-# From: docker.io/python:3.13-alpine
+# From: docker.io/python:3.14-alpine
 ##################################################
-FROM docker.io/python:3.13-alpine@sha256:79e7a9b9ff1cbceff819f856fb374477792a5967759d94df266de7b7b4120e6f AS builder
+FROM docker.io/python:3.14-alpine@sha256:f6a589d43c42b9e7f7dc67a12d37132491f362859a5d750607710cc56da3bc72 AS builder
 
 ARG BUILD_DEV="false"
 
@@ -39,11 +39,11 @@ EOF
 
 ##################################################
 # Stage: final
-# From: docker.io/python:3.13-alpine
+# From: docker.io/python:3.14-alpine
 ##################################################
 #checkov:skip=CKV_DOCKER_2: HEALTHCHECK not required - Health checks are implemented in Kubernetes as liveness and readiness probes
 
-FROM docker.io/python:3.13-alpine@sha256:79e7a9b9ff1cbceff819f856fb374477792a5967759d94df266de7b7b4120e6f AS final
+FROM docker.io/python:3.14-alpine@sha256:f6a589d43c42b9e7f7dc67a12d37132491f362859a5d750607710cc56da3bc72 AS final
 
 LABEL org.opencontainers.image.vendor="Ministry of Justice" \
   org.opencontainers.image.authors="GitHub Community <modernisation-platform@digital.justice.gov.uk>" \
