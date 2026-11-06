@@ -1,6 +1,6 @@
 # 🚀 Modernisation Platform UI
 
-[![Ministry of Justice Repository Compliance Badge](https://github-community.service.justice.gov.uk/repository-standards/api/github-community/badge)](https://github-community.service.justice.gov.uk/repository-standards/modernisation-platform-ui) [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/ministryofjustice/modernisation-platform-ui/badge)](https://scorecard.dev/viewer/?uri=github.com/ministryofjustice/modernisation-platform-ui)
+[![Standards Icon]][Standards Link] [![Scorecards Icon]][Scorecards Link] [![Code Quality Icon]][Code Quality Link]
 
 [![Open in Dev Container](https://raw.githubusercontent.com/ministryofjustice/.devcontainer/refs/heads/main/contrib/badge.svg)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/ministryofjustice/modernisation-platform-ui) [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/ministryofjustice/modernisation-platform-ui)
 
@@ -110,3 +110,10 @@ make app-start
 ## 📄 License
 
 This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
+
+[Standards Link]: https://github-community.service.justice.gov.uk/repository-standards/modernisation-platform-ui "Repo standards badge."
+[Standards Icon]: https://github-community.service.justice.gov.uk/repository-standards/api/modernisation-platform-ui/badge
+[Scorecards Icon]: https://img.shields.io/github/actions/workflow/status/ministryofjustice/modernisation-platform-ui/scorecards.yml?branch=main&labelColor=231f20&style=for-the-badge&label=Scorecards
+[Scorecards Link]: https://github.com/ministryofjustice/modernisation-platform-ui/actions/workflows/scorecards.yml
+[Code Quality Icon]: https://img.shields.io/github/actions/workflow/status/ministryofjustice/modernisation-platform-ui/code-quality.yml?branch=main&labelColor=231f20&style=for-the-badge&label=Code%20Quality
+[Code Quality Link]: https://github.com/ministryofjustice/modernisation-platform-ui/actions/workflows/code-quality.yml
