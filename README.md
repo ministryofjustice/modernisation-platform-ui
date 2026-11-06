@@ -10,28 +10,27 @@ Welcome to the **Modernisation Platform UI**!
 
 - [📣 About Modernisation Platform UI](#-about-modernisation-platform-ui)
 - [📌 Projects](#-projects)
-- [🏗️ modernisation-platform-ui Repository](#-modernisation-platform-ui-repository)
+- [🏗️ modernisation-platform-ui Repository](#️-modernisation-platform-ui-repository)
   - [🔑 Key Features](#-key-features)
   - [📂 Folder Structure](#-folder-structure)
   - [🌎 Hosted Services](#-hosted-services)
   - [✅ Benefits](#-benefits)
   - [❌ Challenges](#-challenges)
-  - [🛠️ Development Setup](#-development-setup)
+  - [🛠️ Development Setup](#️-development-setup)
 - [📄 License](#-license)
 
 ## 📣 About Modernisation Platform UI
 
 The **Modernisation Platform UI** is an application hosted on the Cloud Platform and built by the Modernisation Platform Team to host various projects.
 
-
 ## 📌 Projects
 
 The community currently provides the following projects and services:
 
-| Project Name              | Description                                                                                               |
-| ------------------------- | --------------------------------------------------------------------------------------------------------- |
-| **Reports**               | View various reports and insights for the Modernisation Platform.                                         |
-| **...**                   | More projects to be added...                                                                              |
+| Project Name | Description                                                       |
+| ------------ | ----------------------------------------------------------------- |
+| **Reports**  | View various reports and insights for the Modernisation Platform. |
+| **...**      | More projects to be added...                                      |
 
 ## 🏗️ modernisation-platform-ui Repository
 
@@ -46,7 +45,7 @@ To help engineers quickly build and deploy their projects, this repository hosts
 
 ### 📂 Folder Structure
 
-```
+```text
 /modernisation-platform-ui/
 ├── app/                      # Core Flask application
 │   └── projects/                 # Individual project modules
