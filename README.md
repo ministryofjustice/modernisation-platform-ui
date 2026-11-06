@@ -113,7 +113,7 @@ This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) f
 
 [Standards Link]: https://github-community.service.justice.gov.uk/repository-standards/modernisation-platform-ui "Repo standards badge."
 [Standards Icon]: https://github-community.service.justice.gov.uk/repository-standards/api/modernisation-platform-ui/badge
-[Scorecards Icon]: https://img.shields.io/github/actions/workflow/status/ministryofjustice/modernisation-platform-ui/scorecards.yml?branch=main&labelColor=231f20&style=for-the-badge&label=Scorecards
-[Scorecards Link]: https://github.com/ministryofjustice/modernisation-platform-ui/actions/workflows/scorecards.yml
+[Scorecards Icon]: https://img.shields.io/github/actions/workflow/status/ministryofjustice/modernisation-platform-ui/cicd-openssf-scorecard.yml?branch=main&labelColor=231f20&style=for-the-badge&label=Scorecards
+[Scorecards Link]: https://github.com/ministryofjustice/modernisation-platform-ui/actions/workflows/cicd-openssf-scorecard.yml
 [Code Quality Icon]: https://img.shields.io/github/actions/workflow/status/ministryofjustice/modernisation-platform-ui/code-quality.yml?branch=main&labelColor=231f20&style=for-the-badge&label=Code%20Quality
 [Code Quality Link]: https://github.com/ministryofjustice/modernisation-platform-ui/actions/workflows/code-quality.yml
