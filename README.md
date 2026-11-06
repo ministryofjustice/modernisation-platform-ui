@@ -87,6 +87,10 @@ This repository provides a set of services accessible at **[modernisation-platfo
 - [uv](https://docs.astral.sh/uv/)
 - Docker
 
+The container builder and runtime use the same pinned Python 3.14 image.
+Keep both pins on Python 3.14.10 or later to address CVE-2026-115557;
+the container tests enforce this security baseline.
+
 ### Setup Instructions
 
 ```sh
