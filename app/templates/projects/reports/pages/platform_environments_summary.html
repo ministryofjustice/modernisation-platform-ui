@@ -337,6 +337,22 @@ Environments Summary {% endblock %} {% block content %}
   const rows = table.querySelectorAll('tbody tr');
   const resultsCount = document.getElementById('results-count');
   const totalRows = rows.length;
+  const originalEnvironmentCells = new Map(
+    Array.from(rows, row => [row, Array.from(row.cells[1].childNodes, node => node.cloneNode(true))])
+  );
+
+  function restoreEnvironmentCell(row) {
+    row.cells[1].replaceChildren(...originalEnvironmentCells.get(row).map(node => node.cloneNode(true)));
+  }
+
+  function showEnvironmentTypes(cell, envTypes) {
+    const nodes = [];
+    envTypes.forEach((envType, index) => {
+      if (index > 0) nodes.push(document.createElement('br'));
+      nodes.push(document.createTextNode(envType));
+    });
+    cell.replaceChildren(...nodes);
+  }
 
   searchInput.addEventListener('input', function() {
     const searchTerm = this.value.toLowerCase();
@@ -353,11 +369,7 @@ Environments Summary {% endblock %} {% block content %}
 
       // If no search terms, show all original environment types
       if (searchTerms.length === 0) {
-        const envCell = row.cells[1];
-        envCell.innerHTML = row.getAttribute('data-original-env-html') || envCell.innerHTML;
-        if (!row.getAttribute('data-original-env-html')) {
-          row.setAttribute('data-original-env-html', envCell.innerHTML);
-        }
+        restoreEnvironmentCell(row);
         row.style.display = '';
         visibleCount++;
         return;
@@ -395,10 +407,6 @@ Environments Summary {% endblock %} {% block content %}
 
       if (matches) {
         const envCell = row.cells[1];
-        if (!row.getAttribute('data-original-env-html')) {
-          row.setAttribute('data-original-env-html', envCell.innerHTML);
-        }
-
         // Only filter environment types if there are specific env type search terms
         if (envTypeTerms.length > 0) {
           const originalEnvTypes = envTypesRaw.split(' ');
@@ -417,13 +425,13 @@ Environments Summary {% endblock %} {% block content %}
           });
 
           if (filteredEnvTypes.length > 0) {
-            envCell.innerHTML = filteredEnvTypes.join('<br>');
+            showEnvironmentTypes(envCell, filteredEnvTypes);
           } else {
-            envCell.innerHTML = row.getAttribute('data-original-env-html');
+            restoreEnvironmentCell(row);
           }
         } else {
           // No env type filtering needed, show all
-          envCell.innerHTML = row.getAttribute('data-original-env-html');
+          restoreEnvironmentCell(row);
         }
 
         row.style.display = '';
