@@ -15,13 +15,13 @@ commandTests:
   - name: "python version"
     command: "python"
     args: ["--version"]
-    expectedOutput: ["Python 3.14.*"]
+    expectedOutput: ["Python 3.15.*"]
 
   - name: "python security baseline (CVE-2026-115557)"
-    command: "/usr/local/bin/python3.14"
+    command: "/usr/local/bin/python3.15"
     args:
       - "-c"
-      - "import sys; assert sys.version_info >= (3, 14, 10), sys.version"
+      - "import sys; assert sys.version_info >= (3, 15, 0), sys.version"
 
 fileExistenceTests:
   - name: "/app/app/app.py"
