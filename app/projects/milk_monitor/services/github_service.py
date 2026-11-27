@@ -333,6 +333,9 @@ def get_dependabot_prs() -> dict:
     Search for open Dependabot PRs across the MoJ org that require a review
     from the Modernisation Platform team. Returns count and message list with
     CI check status for each PR.
+    
+    Filters out PRs from archived repositories to avoid stale dependabot PRs
+    from repos that were temporarily unarchived.
     """
     headers = get_github_headers()
     if not headers:
@@ -362,10 +365,30 @@ def get_dependabot_prs() -> dict:
             != "ministryofjustice/modernisation-platform-environments"
         ]
 
-        def _build_pr_message(pr: dict) -> dict:
+        def _is_repo_archived(repo_url: str) -> bool:
+            """Check if a repository is archived by fetching its metadata."""
+            try:
+                repo_response = requests.get(
+                    repo_url,
+                    headers=headers,
+                    timeout=5,
+                )
+                if repo_response.status_code == 200:
+                    return repo_response.json().get("archived", False)
+                return False
+            except Exception as e:
+                logger.warning(f"Failed to check archived status for {repo_url}: {e}")
+                return False
+
+        def _build_pr_message(pr: dict) -> dict | None:
             repo_full_name = pr["repository_url"].replace(
                 "https://api.github.com/repos/", ""
             )
+            
+            if _is_repo_archived(pr["repository_url"]):
+                logger.info(f"Skipping PR #{pr['number']} from archived repo {repo_full_name}")
+                return None
+            
             check_status = _get_pr_check_status(headers, repo_full_name, pr["number"])
             return {
                 "user": "Dependabot",
@@ -384,7 +407,9 @@ def get_dependabot_prs() -> dict:
             futures = {executor.submit(_build_pr_message, pr): pr for pr in prs}
             for future in as_completed(futures):
                 try:
-                    messages.append(future.result())
+                    result = future.result()
+                    if result is not None:
+                        messages.append(result)
                 except Exception as e:
                     pr = futures[future]
                     logger.warning(f"Failed to fetch check status for PR #{pr['number']}: {e}")
